@@ -10,17 +10,18 @@
     <title>Dimmer</title>
   </head>
   <body>
-    <h3>Dimmer</h3>
+    <section>
+      <h3>Current luminance</h3>
+      <div id="currentLuminances"></div>
+    </section>
 
-    <div>
-      <bold>current luminance of monitors</bold>
-      <p id="luminances"></p>
-    </div>
-
-    <div>
-      <label for="luminanceValue">set luminance</label>
-      <input type="number" id="luminanceValue" name="value" min="0" max="100">
-    </div>
+    <section>
+      <h3>Set luminance</h3>
+      <div>
+        <input type="number" id="luminanceValue" name="value" min="0" max="100" value="50">
+        <button id="setButton">set</button>
+      </div>
+    </section>
 
   </body>
   <script src="./renderer.js"></script>

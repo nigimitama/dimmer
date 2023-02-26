@@ -11,7 +11,9 @@ const createWindow = () => {
     },
   });
   ipcMain.handle("getLuminance", getLuminance);
-  ipcMain.handle("setLuminance", setLuminance);
+  ipcMain.handle("setLuminance", async (_event, arg) => {
+    await setLuminance(arg);
+  });
   win.loadFile("index.html");
 };
 

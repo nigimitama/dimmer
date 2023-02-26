@@ -1,13 +1,12 @@
 const { PythonShell } = require("python-shell");
 
 exports.getLuminance = async () => {
-  // return type is array[string]
+  // return: array[string]
   const result = await PythonShell.run("python_modules/get_luminance.py")
-  console.log(result)
   return result
 };
 
-exports.setLuminance = async (value) => {
+exports.setLuminance = async (value = null) => {
   const options = {
     args: [value]
   }

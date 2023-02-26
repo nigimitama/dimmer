@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <title>Dimmer</title>
+  </head>
+  <body>
+    <h3>Dimmer</h3>
+
+    <div>
+      <bold>current luminance of monitors</bold>
+      <p id="luminances"></p>
+    </div>
+
+    <div>
+      <label for="luminanceValue">set luminance</label>
+      <input type="number" id="luminanceValue" name="value" min="0" max="100">
+    </div>
+
+  </body>
+  <script src="./renderer.js"></script>
+</html>

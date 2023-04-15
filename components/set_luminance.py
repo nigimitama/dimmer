@@ -4,31 +4,31 @@ from modules import monitor
 
 
 def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Row:
-    input_height = int(FONT_SIZE * 2)
-
-    input = ft.TextField(
-        value="50",
-        text_align=ft.TextAlign.RIGHT,
-        width=50,
-        height=input_height,
-        text_size=FONT_SIZE
-    )
+    input_height = int(FONT_SIZE * 3)
 
     def _set_and_update(e):
-        # set
-        monitor.set_luminance(int(input.value))
-
-        # update
+        # set luminance
+        monitor.set_luminance(int(e.control.value))
+        # update current luminance
+        current_luminance.value = int(e.control.value)
         values = monitor.get_luminances()
         for luminance, value in zip(luminances, values):
             luminance.value = value
         page.update()
 
+    input = ft.Slider(
+        value=50, min=0, max=100,
+        divisions=10, label="{value}",
+        width=150,
+        on_change=_set_and_update
+    )
+
+    current_luminance = ft.Text(input.value)
 
     row = ft.Row(
         [
             input,
-            ft.ElevatedButton("Set", on_click=_set_and_update, height=input_height),
+            current_luminance
         ],
         alignment=ft.MainAxisAlignment.START
     )

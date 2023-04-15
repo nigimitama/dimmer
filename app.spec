@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='C:\\Users\\mitama\\AppData\\Local\\Temp\\9ed93e12-c95e-46d2-acc3-a430ab88bc1c',
+    version='C:\\Users\\mitama\\AppData\\Local\\Temp\\66fd1423-f042-4a63-a5e6-a4d3627d875e',
 )

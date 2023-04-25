@@ -4,3 +4,9 @@ temp*
 
 dist/
 build/
+*.spec
+
+dimmer.json
+dist/dimmer.json
+
+generated*.ico

@@ -36,6 +36,7 @@ def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Row:
     col = ft.Column(
         [
             ft.Text("Set Luminance", size=FONT_SIZE_H2),
+            ft.Text("set luminance for all monitors immediately", size=FONT_SIZE),
             row,
         ],
         horizontal_alignment=ft.CrossAxisAlignment.START

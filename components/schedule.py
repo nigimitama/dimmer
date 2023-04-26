@@ -84,7 +84,6 @@ class ScheduleControl(ft.UserControl):
 
     def _save(self, e = None):
         """save settings and update view"""
-        print("[ScheduleControl] saving...")
         values = []
         for schedule_input in self.schedules.controls:
             if schedule_input.visible:
@@ -115,7 +114,6 @@ class ScheduleControl(ft.UserControl):
 
                 job = ScheduledJob(page=self.page, luminance_vars=self.luminance_vars, new_luminance=luminance)
                 schedule.every().day.at(f"{hour}:{minute}").do(job.set_and_update)
-                print(f"[_update_jobs] setting job {hour}:{minute} {luminance} | jobs={schedule.jobs}")
 
 
 class ScheduledJob:
@@ -126,7 +124,6 @@ class ScheduledJob:
         self.luminance_vars = luminance_vars
 
     def set_and_update(self):
-        print(f"[set_and_update] new_luminance={self.new_luminance}")
         # set
         monitor.set_luminance(self.new_luminance)
         monitor.set_luminance(self.new_luminance)  # try twice because it does not work sometimes 

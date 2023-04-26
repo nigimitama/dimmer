@@ -106,20 +106,32 @@ class ScheduleControl(ft.UserControl):
     def _update_jobs(self):
         """update scheduled jobs by given scheudle inputs"""
 
-        def _set_and_update(new_luminance: int):
-            # set
-            monitor.set_luminance(new_luminance)
-            monitor.set_luminance(new_luminance)  # try twice because it does not work sometimes 
-            # update current luminance displaying
-            values = monitor.get_luminances()
-            for luminance, value in zip(self.luminance_vars, values):
-                luminance.value = value
-            self.page.update()
-
         schedule.clear()
         for schedule_input in self.schedules.controls:
             if schedule_input.visible:
                 hour: str = schedule_input.hour.value
                 minute: str = schedule_input.minute.value
                 luminance: int = int(schedule_input.luminance.value)
-                schedule.every().day.at(f"{hour}:{minute}").do(lambda :_set_and_update(new_luminance=luminance))
+
+                job = ScheduledJob(page=self.page, luminance_vars=self.luminance_vars, new_luminance=luminance)
+                schedule.every().day.at(f"{hour}:{minute}").do(job.set_and_update)
+                print(f"[_update_jobs] setting job {hour}:{minute} {luminance} | jobs={schedule.jobs}")
+
+
+class ScheduledJob:
+
+    def __init__(self, page: ft.Page, luminance_vars: list, new_luminance: int) -> None:
+        self.page = page
+        self.new_luminance = new_luminance
+        self.luminance_vars = luminance_vars
+
+    def set_and_update(self):
+        print(f"[set_and_update] new_luminance={self.new_luminance}")
+        # set
+        monitor.set_luminance(self.new_luminance)
+        monitor.set_luminance(self.new_luminance)  # try twice because it does not work sometimes 
+        # update current luminance displaying
+        values = monitor.get_luminances()
+        for luminance, value in zip(self.luminance_vars, values):
+            luminance.value = value
+        self.page.update()

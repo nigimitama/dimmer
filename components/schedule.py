@@ -81,6 +81,7 @@ class ScheduleControl(ft.UserControl):
                 on_change=self._save
             )
             self.schedules.controls.append(schedule_input)
+        self._update_jobs()
 
     def _save(self, e = None):
         """save settings and update view"""

@@ -1,3 +1,5 @@
+![dimmer-logo](assets/logo/dimmer-logo.png)
+
 # Dimmer
 
 GUI application to control luminance of monitors.

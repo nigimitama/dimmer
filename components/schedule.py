@@ -5,22 +5,21 @@ from modules import monitor
 import schedule
 
 
-class ScheduleInput(ft.UserControl):
+class ScheduleInput(ft.Container):
     """component for input hours, minutes and value of luminance"""
 
     def __init__(self, hour=0, minute=0, luminance=50, on_change=None):
-        super().__init__()
         self.hour = ft.Dropdown(
             label="Hour",
             options=[ft.dropdown.Option(f"{hour:0>2}") for hour in range(24)],
-            width=65,
+            width=100,
             value=f"{hour:0>2}",
             on_change=on_change
         )
         self.minute = ft.Dropdown(
             label="Minute",
             options=[ft.dropdown.Option(f"{minute:0>2}") for minute in range(60)],
-            width=65,
+            width=100,
             value=f"{minute:0>2}",
             on_change=on_change
         )
@@ -28,43 +27,41 @@ class ScheduleInput(ft.UserControl):
         self.delete_button = ft.ElevatedButton("Delete", on_click=self._delete)
         self.on_change = on_change
 
-    def build(self):
-        return ft.Container(
-            ft.Row([ self.hour, self.minute, self.luminance, self.delete_button ]),
-            alignment=ft.alignment.center_left,
-            margin=ft.Margin(10, 10, 10, 10)
+        super().__init__(
+            content=ft.Row([self.hour, self.minute, self.luminance, self.delete_button]),
+            alignment=ft.Alignment(-1, 0),
+            margin=ft.margin.all(10)
         )
 
     def _delete(self, e):
         self.visible = False
         if self.on_change != None:
             self.on_change()
-        self.update()
+        if hasattr(self, 'update'):
+            self.update()
 
 
-class ScheduleControl(ft.UserControl):
+class ScheduleControl(ft.Container):
 
     def __init__(self, page: ft.Page, luminance_vars: list[ft.Text]) -> None:
-        super().__init__()
         self.page = page
         self.luminance_vars = luminance_vars
         self.schedules = ft.Column()
         self.add_button = ft.ElevatedButton("Add", on_click=self._add_schedule)
-        self.components = ft.Container(
-            ft.Column([
+        self.storage = Storage()
+
+        super().__init__(
+            content=ft.Column([
                 ft.Text("Schedule", size=FONT_SIZE_H2),
                 ft.Text("luminance will be set at the scheduled time everyday", size=FONT_SIZE),
                 self.schedules,
                 self.add_button
             ]),
-            alignment=ft.alignment.center_left,
-            margin=ft.Margin(10, 10, 10, 50)
+            alignment=ft.Alignment(-1, 0),
+            margin=ft.margin.only(left=10, top=10, right=10, bottom=50)
         )
-        self.storage = Storage()
-
-    def build(self):
+        
         self._load()
-        return self.components
 
     def _add_schedule(self, e = None):
         self.schedules.controls.append(ScheduleInput(on_change=self._save))

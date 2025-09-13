@@ -3,7 +3,7 @@ from components.constants import FONT_SIZE_H2, FONT_SIZE
 from modules import monitor
 
 
-def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Row:
+def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Container:
     input_height = int(FONT_SIZE * 3)
 
     def _set_and_update(e):
@@ -44,6 +44,6 @@ def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Row:
 
     return ft.Container(
         col,
-        alignment=ft.alignment.center_left,
-        margin=ft.Margin(10, 10, 10, 10)
+        alignment=ft.Alignment(-1, 0),
+        margin=ft.margin.all(10)
     )

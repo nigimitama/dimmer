@@ -5,7 +5,11 @@ description = "Monitor brightness manager"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "flet>=0.28.3",
     "monitorcontrol>=4.1.1",
     "schedule>=1.2.2",
+]
+
+[dependency-groups]
+dev = [
+    "flet[all]>=0.28.3",
 ]

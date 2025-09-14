@@ -6,7 +6,7 @@ from pathlib import Path
 class Storage:
     """Save data into json"""
 
-    def __init__(self, path = Path("dimmer.json")) -> None:
+    def __init__(self, path=Path("dimmer.json")) -> None:
         self.path = path
         self.data = self.load() or {}
 

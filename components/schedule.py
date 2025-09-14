@@ -23,7 +23,7 @@ class ScheduleInput(ft.Container):
             value=f"{minute:0>2}",
             on_change=on_change
         )
-        self.luminance = ft.TextField(label="Luminance", width=90, value=luminance, on_change=on_change)
+        self.luminance = ft.TextField(label="Luminance", width=90, value=str(luminance), on_change=on_change)
         self.delete_button = ft.ElevatedButton("Delete", on_click=self._delete)
         self.on_change = on_change
 

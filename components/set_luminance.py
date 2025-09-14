@@ -4,16 +4,21 @@ from modules import monitor
 
 
 def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Container:
-    input_height = int(FONT_SIZE * 3)
 
-    def _set_and_update(e):
+    def _set_and_update(e: ft.ControlEvent):
+        if not isinstance(e.control.value, (int, float)):
+            return
+
+        new_luminance = int(e.control.value)
+
         # set luminance
-        monitor.set_luminance(int(e.control.value))
+        monitor.set_luminance(new_luminance)
+
         # update current luminance
-        current_luminance.value = int(e.control.value)
+        current_luminance.value = str(new_luminance)
         values = monitor.get_luminances()
         for luminance, value in zip(luminances, values):
-            luminance.value = value
+            luminance.value = str(value)
         page.update()
 
     input = ft.Slider(
@@ -23,7 +28,7 @@ def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Container:
         on_change=_set_and_update
     )
 
-    current_luminance = ft.Text(input.value)
+    current_luminance = ft.Text(str(input.value))
 
     row = ft.Row(
         [

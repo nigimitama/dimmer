@@ -1,3 +1,0 @@
-monitorcontrol>=3.0.2
-flet
-schedule

@@ -1,0 +1,21 @@
+[project]
+name = "dimmer"
+version = "0.2.0"
+description = "Monitor brightness manager"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "monitorcontrol>=4.1.1",
+    "schedule>=1.2.2",
+]
+
+[dependency-groups]
+dev = [
+    "flet[all]>=0.28.3",
+    "pre-commit>=4.3.0",
+    "pyright>=1.1.405",
+    "ruff>=0.13.0",
+]
+
+[tool.ruff]
+line-length = 120

@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    # - uses: tox-dev/action-pre-commit-uv@v1
     - uses: astral-sh/setup-uv@v6
-    - run: uv sync --all-extras --dev
-    - uses: pre-commit/action@v3.0.1
+    # dev Dependencies環境のもとでpre-coommitを実行
+    - run: uv run --group dev pre-commit run --show-diff-on-failure --all-files

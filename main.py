@@ -29,9 +29,7 @@ def main(page: ft.Page):
 
     luminance_vars = setup_luminance_vars()
     page.add(
-        current_luminance(luminance_vars),
-        set_luminance(page, luminance_vars),
-        ScheduleControl(page, luminance_vars)
+        current_luminance(luminance_vars), set_luminance(page, luminance_vars), ScheduleControl(page, luminance_vars)
     )
 
     # Start the schedule worker in a separate thread
@@ -39,5 +37,5 @@ def main(page: ft.Page):
     schedule_thread.start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ft.app(target=main)

@@ -71,7 +71,6 @@ class ScheduleControl(ft.Container):
     def _load(self):
         values = self.storage.get(key="schedule") or []
         for hour, minute, luminance in values:
-            # print(hour, minute, luminance)
             schedule_input = ScheduleInput(hour=hour, minute=minute, luminance=luminance, on_change=self._save)
             self.schedules.controls.append(schedule_input)
         self._update_jobs()
@@ -79,12 +78,13 @@ class ScheduleControl(ft.Container):
     def _save(self, e=None):
         """save settings and update view"""
         values = []
-        for schedule_input in self.schedules.controls:
-            if schedule_input.visible:
-                hour = int(schedule_input.hour.value)
-                minute = int(schedule_input.minute.value)
-                luminance = int(schedule_input.luminance.value)
-                values.append([hour, minute, luminance])
+        for si in self.schedules.controls:
+            if isinstance(si, ScheduleInput) and si.visible:
+                if si.hour.value and si.minute.value and si.luminance.value:
+                    hour = int(si.hour.value)
+                    minute = int(si.minute.value)
+                    luminance = int(si.luminance.value)
+                    values.append([hour, minute, luminance])
 
         self.storage.set(key="schedule", value=values)
 
@@ -92,22 +92,23 @@ class ScheduleControl(ft.Container):
         self._update_jobs()
 
         # show flash notice
-        self.page.snack_bar = ft.SnackBar(ft.Text("Changes were saved"))
-        self.page.snack_bar.open = True
-        self.page.update()
+        if self.page:
+            snack_bar = ft.SnackBar(ft.Text("Changes were saved"))
+            self.page.open(snack_bar)
+            self.page.update()
 
     def _update_jobs(self):
         """update scheduled jobs by given scheudle inputs"""
 
         schedule.clear()
-        for schedule_input in self.schedules.controls:
-            if schedule_input.visible:
-                hour: str = schedule_input.hour.value
-                minute: str = schedule_input.minute.value
-                luminance: int = int(schedule_input.luminance.value)
-
-                job = ScheduledJob(page=self.page, luminance_vars=self.luminance_vars, new_luminance=luminance)
-                schedule.every().day.at(f"{hour}:{minute}").do(job.set_and_update)
+        for si in self.schedules.controls:
+            if isinstance(si, ScheduleInput) and si.visible:
+                if si.hour.value and si.minute.value and si.luminance.value and self.page:
+                    hour: str = si.hour.value
+                    minute: str = si.minute.value
+                    luminance: int = int(si.luminance.value)
+                    job = ScheduledJob(page=self.page, luminance_vars=self.luminance_vars, new_luminance=luminance)
+                    schedule.every().day.at(f"{hour}:{minute}").do(job.set_and_update)
 
 
 class ScheduledJob:

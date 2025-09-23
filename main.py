@@ -1,16 +1,18 @@
 import time
 import schedule
 import threading
-import flet as ft
-from components.current_luminance import current_luminance
-from components.set_luminance import set_luminance
-from components.schedule import ScheduleControl
+import tkinter as tk
+from tkinter import ttk
+from components.current_luminance import CurrentLuminanceFrame
+from components.set_luminance import SetLuminanceFrame
+from components.schedule import ScheduleFrame
 from modules import monitor
 
 
-def setup_luminance_vars() -> list[ft.Text]:
+def setup_luminance_vars(root):
+    """Setup luminance variables as StringVar objects"""
     values = monitor.get_luminances()
-    return [ft.Text(value=str(value)) for value in values]
+    return [tk.StringVar(root, str(value)) for value in values]
 
 
 def schedule_worker():
@@ -20,22 +22,34 @@ def schedule_worker():
         time.sleep(1)
 
 
-def main(page: ft.Page):
-    page.title = "Dimmer"
-    page.window.width = 600
-    page.window.height = 600
-    page.scroll = ft.ScrollMode.ADAPTIVE
-    page.vertical_alignment = ft.MainAxisAlignment.START
+def main():
+    root = tk.Tk()
+    root.title("Dimmer")
+    root.geometry("600x600")
 
-    luminance_vars = setup_luminance_vars()
-    page.add(
-        current_luminance(luminance_vars), set_luminance(page, luminance_vars), ScheduleControl(page, luminance_vars)
-    )
+    # Setup shared luminance variables
+    luminance_vars = setup_luminance_vars(root)
+
+    # Create main frame with scrollable content
+    main_frame = ttk.Frame(root)
+    main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    # Create components
+    current_luminance_frame = CurrentLuminanceFrame(main_frame, luminance_vars)
+    current_luminance_frame.pack(fill=tk.X, pady=(0, 10))
+
+    set_luminance_frame = SetLuminanceFrame(main_frame, luminance_vars, root)
+    set_luminance_frame.pack(fill=tk.X, pady=(0, 10))
+
+    schedule_frame = ScheduleFrame(main_frame, luminance_vars, root)
+    schedule_frame.pack(fill=tk.BOTH, expand=True)
 
     # Start the schedule worker in a separate thread
     schedule_thread = threading.Thread(target=schedule_worker, daemon=True)
     schedule_thread.start()
 
+    root.mainloop()
+
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    main()

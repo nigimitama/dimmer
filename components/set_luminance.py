@@ -1,35 +1,61 @@
-import flet as ft
+import tkinter as tk
+from tkinter import ttk
 from components.constants import FONT_SIZE_H2, FONT_SIZE
 from modules import monitor
 
 
-def set_luminance(page: ft.Page, luminances: list[ft.Text]) -> ft.Container:
-    def _set_and_update(e: ft.ControlEvent):
-        if not isinstance(e.control.value, (int, float)):
-            return
+class SetLuminanceFrame(ttk.Frame):
+    def __init__(self, parent, luminances: list[tk.StringVar], root):
+        super().__init__(parent)
+        self.luminances = luminances
+        self.root = root
 
-        new_luminance = int(e.control.value)
+        # Title label
+        title_label = ttk.Label(self, text="Set Luminance", font=("TkDefaultFont", FONT_SIZE_H2, "bold"))
+        title_label.pack(anchor="w", pady=(0, 5))
 
-        # set luminance
-        monitor.set_luminance(new_luminance)
+        # Description label
+        desc_label = ttk.Label(
+            self, text="set luminance for all monitors immediately", font=("TkDefaultFont", FONT_SIZE)
+        )
+        desc_label.pack(anchor="w", pady=(0, 10))
 
-        # update current luminance
-        current_luminance.value = str(new_luminance)
-        values = monitor.get_luminances()
-        for luminance, value in zip(luminances, values):
-            luminance.value = str(value)
-        page.update()
+        # Control frame
+        control_frame = ttk.Frame(self)
+        control_frame.pack(fill=tk.X)
 
-    input = ft.Slider(value=50, min=0, max=100, divisions=10, label="{value}", width=150, on_change=_set_and_update)
-    current_luminance = ft.Text(str(input.value))
-    row = ft.Row([input, current_luminance], alignment=ft.MainAxisAlignment.START)
-    col = ft.Column(
-        [
-            ft.Text("Set Luminance", size=FONT_SIZE_H2),
-            ft.Text("set luminance for all monitors immediately", size=FONT_SIZE),
-            row,
-        ],
-        horizontal_alignment=ft.CrossAxisAlignment.START,
-    )
+        # Scale for luminance control
+        self.luminance_var = tk.IntVar(value=50)
+        self.scale = ttk.Scale(
+            control_frame,
+            from_=0,
+            to=100,
+            orient=tk.HORIZONTAL,
+            variable=self.luminance_var,
+            command=self._set_and_update,
+            length=200,
+        )
+        self.scale.pack(side=tk.LEFT, padx=(0, 10))
 
-    return ft.Container(col, alignment=ft.Alignment(-1, 0), margin=ft.margin.all(10))
+        # Current value label
+        self.current_value_label = ttk.Label(control_frame, text="50", font=("TkDefaultFont", FONT_SIZE))
+        self.current_value_label.pack(side=tk.LEFT)
+
+    def _set_and_update(self, value):
+        """Update luminance when scale changes"""
+        try:
+            new_luminance = int(float(value))
+
+            # Update the current value label
+            self.current_value_label.config(text=str(new_luminance))
+
+            # Set luminance
+            monitor.set_luminance(new_luminance)
+
+            # Update luminance variables
+            values = monitor.get_luminances()
+            for luminance_var, monitor_value in zip(self.luminances, values):
+                luminance_var.set(str(monitor_value))
+
+        except (ValueError, TypeError):
+            pass

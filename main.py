@@ -7,6 +7,7 @@ from components.current_luminance import CurrentLuminanceFrame
 from components.set_luminance import SetLuminanceFrame
 from components.schedule import ScheduleFrame
 from modules import monitor
+from modules.tray_icon import SystemTrayManager
 
 
 def setup_luminance_vars(root):
@@ -26,6 +27,15 @@ def main():
     root = tk.Tk()
     root.title("Dimmer")
     root.geometry("600x600")
+
+    # Setup system tray
+    tray_manager = SystemTrayManager(root)
+
+    # Override the close button to hide instead of exit
+    def on_closing():
+        tray_manager.hide_window()
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
 
     # Setup shared luminance variables
     luminance_vars = setup_luminance_vars(root)
@@ -48,6 +58,10 @@ def main():
     schedule_thread = threading.Thread(target=schedule_worker, daemon=True)
     schedule_thread.start()
 
+    # Start system tray
+    tray_manager.start_tray()
+
+    # Start the main loop
     root.mainloop()
 
 

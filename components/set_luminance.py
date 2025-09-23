@@ -24,8 +24,12 @@ class SetLuminanceFrame(ttk.Frame):
         control_frame = ttk.Frame(self)
         control_frame.pack(fill=tk.X)
 
+        # Get current luminance for initial value
+        current_luminances = monitor.get_luminances()
+        initial_value = current_luminances[0] if current_luminances else 50
+
         # Scale for luminance control
-        self.luminance_var = tk.IntVar(value=50)
+        self.luminance_var = tk.IntVar(value=initial_value)
         self.scale = ttk.Scale(
             control_frame,
             from_=0,
@@ -38,7 +42,7 @@ class SetLuminanceFrame(ttk.Frame):
         self.scale.pack(side=tk.LEFT, padx=(0, 10))
 
         # Current value label
-        self.current_value_label = ttk.Label(control_frame, text="50", font=("TkDefaultFont", FONT_SIZE))
+        self.current_value_label = ttk.Label(control_frame, text=str(initial_value), font=("TkDefaultFont", FONT_SIZE))
         self.current_value_label.pack(side=tk.LEFT)
 
     def _set_and_update(self, value):

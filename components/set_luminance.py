@@ -1,24 +1,17 @@
 import tkinter as tk
 from tkinter import ttk
-from components.constants import FONT_SIZE_H2, FONT_SIZE
 from modules import monitor
 
 
-class SetLuminanceFrame(ttk.Frame):
+class SetLuminanceFrame(ttk.LabelFrame):
     def __init__(self, parent, luminances: list[tk.StringVar], root):
-        super().__init__(parent)
+        super().__init__(parent, text="Set Luminance", padding=15)
         self.luminances = luminances
         self.root = root
 
-        # Title label
-        title_label = ttk.Label(self, text="Set Luminance", font=("TkDefaultFont", FONT_SIZE_H2, "bold"))
-        title_label.pack(anchor="w", pady=(0, 5))
-
         # Description label
-        desc_label = ttk.Label(
-            self, text="set luminance for all monitors immediately", font=("TkDefaultFont", FONT_SIZE)
-        )
-        desc_label.pack(anchor="w", pady=(0, 10))
+        desc_label = ttk.Label(self, text="Set luminance for all monitors immediately", style="Custom.TLabel")
+        desc_label.pack(anchor="w", pady=(0, 15))
 
         # Control frame
         control_frame = ttk.Frame(self)
@@ -29,7 +22,7 @@ class SetLuminanceFrame(ttk.Frame):
         initial_value_percent = current_luminances[0] if current_luminances else 50
         initial_value = int(initial_value_percent / 10)  # [0-10] scale
 
-        # Scale for luminance control
+        # Scale for luminance control with modern styling
         self.luminance_var = tk.IntVar(value=initial_value)
         self.scale = ttk.Scale(
             control_frame,
@@ -38,15 +31,18 @@ class SetLuminanceFrame(ttk.Frame):
             orient=tk.HORIZONTAL,
             variable=self.luminance_var,
             command=self._set_and_update,
-            length=200,
+            length=300,
         )
-        self.scale.pack(side=tk.LEFT, padx=(0, 10))
+        self.scale.pack(side=tk.LEFT, padx=(0, 20))
 
-        # Current value label
-        self.current_value_label = ttk.Label(
-            control_frame, text=str(initial_value * 10), font=("TkDefaultFont", FONT_SIZE)
-        )
+        # Current value display
+        value_frame = ttk.Frame(control_frame)
+        value_frame.pack(side=tk.LEFT)
+
+        self.current_value_label = ttk.Label(value_frame, text=str(initial_value * 10), style="Accent.TLabel")
         self.current_value_label.pack(side=tk.LEFT)
+
+        ttk.Label(value_frame, text="%", style="Custom.TLabel").pack(side=tk.LEFT)
 
     def _set_and_update(self, value: str):
         """Update luminance when scale changes"""

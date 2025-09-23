@@ -3,11 +3,14 @@ import schedule
 import threading
 import tkinter as tk
 from tkinter import ttk
+import sv_ttk
 from components.current_luminance import CurrentLuminanceFrame
 from components.set_luminance import SetLuminanceFrame
 from components.schedule import ScheduleFrame
+from components.style import Theme, apply_theme_to_titlebar, configure_styles
 from modules import monitor
 from modules.tray_icon import SystemTrayManager
+import darkdetect
 
 
 def setup_luminance_vars(root):
@@ -26,7 +29,16 @@ def schedule_worker():
 def main():
     root = tk.Tk()
     root.title("Dimmer")
-    root.geometry("600x600")
+    root.geometry("900x700")
+
+    # set dark or light theme
+    system_setting: Theme | None = darkdetect.theme()
+    theme = system_setting or "light"
+    sv_ttk.set_theme(theme)
+    apply_theme_to_titlebar(root, theme)
+
+    # Configure custom styles
+    configure_styles()
 
     # Setup system tray
     tray_manager = SystemTrayManager(root)
@@ -40,9 +52,9 @@ def main():
     # Setup shared luminance variables
     luminance_vars = setup_luminance_vars(root)
 
-    # Create main frame with scrollable content
+    # Create main frame with modern styling
     main_frame = ttk.Frame(root)
-    main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
     # Create components
     current_luminance_frame = CurrentLuminanceFrame(main_frame, luminance_vars)

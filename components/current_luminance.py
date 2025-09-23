@@ -1,24 +1,26 @@
 import tkinter as tk
 from tkinter import ttk
-from components.constants import FONT_SIZE_H2, FONT_SIZE
 
 
-class CurrentLuminanceFrame(ttk.Frame):
+class CurrentLuminanceFrame(ttk.LabelFrame):
     def __init__(self, parent, luminances: list[tk.StringVar]):
-        super().__init__(parent)
+        super().__init__(parent, text="Current Luminance", padding=15)
         self.luminances = luminances
 
-        # Title label
-        title_label = ttk.Label(self, text="Current Luminance", font=("TkDefaultFont", FONT_SIZE_H2, "bold"))
-        title_label.pack(anchor="w", pady=(0, 5))
-
-        # Create monitor labels
+        # Create monitor labels with improved styling
         for i, luminance in enumerate(luminances):
             monitor_frame = ttk.Frame(self)
-            monitor_frame.pack(fill=tk.X, pady=2)
+            monitor_frame.pack(fill=tk.X, pady=8)
 
-            monitor_label = ttk.Label(monitor_frame, text=f"Monitor {i + 1}:", font=("TkDefaultFont", FONT_SIZE))
+            # Monitor label
+            monitor_label = ttk.Label(monitor_frame, text=f"Monitor {i + 1}:", style="Custom.TLabel")
             monitor_label.pack(side=tk.LEFT)
 
-            luminance_label = ttk.Label(monitor_frame, textvariable=luminance, font=("TkDefaultFont", FONT_SIZE))
-            luminance_label.pack(side=tk.LEFT, padx=(10, 0))
+            # Value label with accent styling
+            value_frame = ttk.Frame(monitor_frame)
+            value_frame.pack(side=tk.LEFT, padx=(15, 0))
+
+            luminance_label = ttk.Label(value_frame, textvariable=luminance, style="Accent.TLabel")
+            luminance_label.pack(side=tk.LEFT)
+
+            ttk.Label(value_frame, text="%", style="Custom.TLabel").pack(side=tk.LEFT)

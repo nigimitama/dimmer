@@ -14,11 +14,10 @@ class LuminanceTabsFrame(ttk.Frame):
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
-        # Create individual monitor control tab
-        self.individual_frame = LuminanceControllerFrame(self.notebook, luminances)
-
         # Create all monitors control tab
         self.all_frame = AllLuminanceControllerFrame(self.notebook, luminance, luminances, root)
-
         self.notebook.add(self.all_frame, text="Control All Monitors")
+
+        # Create individual monitor control tab
+        self.individual_frame = LuminanceControllerFrame(self.notebook, luminances)
         self.notebook.add(self.individual_frame, text="Control Individual Monitor")

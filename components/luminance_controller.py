@@ -4,9 +4,9 @@ from modules import monitor
 from components.custom_widgets import LuminanceScale
 
 
-class LuminanceControllerFrame(ttk.LabelFrame):
+class LuminanceControllerFrame(ttk.Frame):
     def __init__(self, parent, luminances: list[tk.StringVar]):
-        super().__init__(parent, text="Luminance Control", padding=15)
+        super().__init__(parent, padding=15)
         self.luminances = luminances
         self.sliders = []
         self.value_labels = []

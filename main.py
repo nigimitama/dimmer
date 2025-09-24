@@ -4,8 +4,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 import sv_ttk
-from components.luminance_controller import LuminanceControllerFrame
-from components.set_luminance import SetLuminanceFrame
+from components.luminance_tabs import LuminanceTabsFrame
 from components.schedule import ScheduleFrame
 from components.style import Theme, apply_theme_to_titlebar, configure_styles
 from modules import monitor
@@ -56,14 +55,11 @@ def main():
     main_frame = ttk.Frame(root)
     main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-    # Create components
-    current_luminance_frame = LuminanceControllerFrame(main_frame, luminance_vars)
-    current_luminance_frame.pack(fill=tk.X, pady=(0, 15))
+    # Create luminance control tabs
+    luminance_tabs = LuminanceTabsFrame(main_frame, luminance_vars, root)
+    luminance_tabs.pack(fill=tk.X, pady=(0, 15))
 
-    set_luminance_frame = SetLuminanceFrame(main_frame, luminance_vars, root, current_luminance_frame)
-    set_luminance_frame.pack(fill=tk.X, pady=(0, 15))
-
-    schedule_frame = ScheduleFrame(main_frame, luminance_vars, root, current_luminance_frame)
+    schedule_frame = ScheduleFrame(main_frame, luminance_vars, root, luminance_tabs.current_luminance_frame)
     schedule_frame.pack(fill=tk.BOTH, expand=True)
 
     # Start the schedule worker in a separate thread

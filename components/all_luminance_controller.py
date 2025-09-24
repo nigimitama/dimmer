@@ -6,12 +6,11 @@ from modules.performance import measure_time
 
 
 class AllLuminanceControllerFrame(ttk.Frame):
-    def __init__(self, parent, luminance: tk.IntVar, luminances: list[tk.IntVar], root, current_luminance_frame=None):
+    def __init__(self, parent, luminance: tk.IntVar, luminances: list[tk.IntVar], root):
         super().__init__(parent, padding=15)
         self.luminance = luminance
         self.luminances = luminances
         self.root = root
-        self.current_luminance_frame = current_luminance_frame
 
         # Control frame
         control_frame = ttk.Frame(self)
@@ -48,10 +47,6 @@ class AllLuminanceControllerFrame(ttk.Frame):
             values = monitor.get_luminances()
             for luminance_var, monitor_value in zip(self.luminances, values):
                 luminance_var.set(monitor_value)
-
-            # Update individual monitor sliders if available
-            if self.current_luminance_frame and hasattr(self.current_luminance_frame, "update_from_external"):
-                self.current_luminance_frame.update_from_external()
 
         except (ValueError, TypeError):
             pass

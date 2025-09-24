@@ -68,15 +68,3 @@ class LuminanceControllerFrame(ttk.Frame):
 
         except (ValueError, TypeError):
             pass
-
-    def update_from_external(self):
-        """Update sliders when luminance is changed externally"""
-        try:
-            current_values = monitor.get_luminances()
-            for i, slider in enumerate(self.sliders):
-                if i < len(current_values):
-                    value = current_values[i]
-                    slider.set(value)
-                    self.luminances[i].set(value)
-        except Exception:
-            pass

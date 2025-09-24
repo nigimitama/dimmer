@@ -65,11 +65,10 @@ class ScheduleInputFrame(ttk.Frame):
 
 
 class ScheduleFrame(ttk.LabelFrame):
-    def __init__(self, parent, luminance_vars: list[tk.IntVar], root, current_luminance_frame=None):
+    def __init__(self, parent, luminance_vars: list[tk.IntVar], root):
         super().__init__(parent, text="Schedule", padding=15)
         self.luminance_vars = luminance_vars
         self.root = root
-        self.current_luminance_frame = current_luminance_frame
         self.storage = Storage()
         self.schedule_inputs = []
 
@@ -155,17 +154,15 @@ class ScheduleFrame(ttk.LabelFrame):
                     root=self.root,
                     luminance_vars=self.luminance_vars,
                     new_luminance=luminance,
-                    current_luminance_frame=self.current_luminance_frame,
                 )
                 schedule.every().day.at(f"{hour:02d}:{minute:02d}").do(job.set_and_update)
 
 
 class ScheduledJob:
-    def __init__(self, root, luminance_vars: list[tk.IntVar], new_luminance: int, current_luminance_frame=None):
+    def __init__(self, root, luminance_vars: list[tk.IntVar], new_luminance: int):
         self.root = root
         self.new_luminance = new_luminance
         self.luminance_vars = luminance_vars
-        self.current_luminance_frame = current_luminance_frame
 
     def set_and_update(self):
         # Set luminance
@@ -176,7 +173,3 @@ class ScheduledJob:
         values = monitor.get_luminances()
         for luminance_var, value in zip(self.luminance_vars, values):
             luminance_var.set(value)
-
-        # Update individual monitor sliders if available
-        if self.current_luminance_frame and hasattr(self.current_luminance_frame, "update_from_external"):
-            self.current_luminance_frame.update_from_external()

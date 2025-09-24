@@ -1,3 +1,4 @@
+from statistics import mean
 import time
 import schedule
 import threading
@@ -12,10 +13,12 @@ from modules.tray_icon import SystemTrayManager
 import darkdetect
 
 
-def setup_luminance_vars(root):
+def setup_variables(root):
     """Setup luminance variables as IntVar objects"""
     values = monitor.get_luminances()
-    return [tk.IntVar(root, value) for value in values]
+    luminance_vars = [tk.IntVar(root, value) for value in values]
+    luminance_var = tk.IntVar(root, int(mean(values)) if values else 50)
+    return luminance_vars, luminance_var
 
 
 def schedule_worker():
@@ -49,14 +52,14 @@ def main():
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
     # Setup shared luminance variables
-    luminance_vars = setup_luminance_vars(root)
+    luminance_vars, luminance_var = setup_variables(root)
 
     # Create main frame with modern styling
     main_frame = ttk.Frame(root)
     main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
     # Create luminance control tabs
-    luminance_tabs = LuminanceTabsFrame(main_frame, luminance_vars, root)
+    luminance_tabs = LuminanceTabsFrame(main_frame, luminance_var, luminance_vars, root)
     luminance_tabs.pack(fill=tk.X, pady=(0, 15))
 
     schedule_frame = ScheduleFrame(main_frame, luminance_vars, root, luminance_tabs.current_luminance_frame)

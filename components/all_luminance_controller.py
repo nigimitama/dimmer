@@ -6,8 +6,9 @@ from modules.performance import measure_time
 
 
 class AllLuminanceControllerFrame(ttk.Frame):
-    def __init__(self, parent, luminances: list[tk.IntVar], root, current_luminance_frame=None):
+    def __init__(self, parent, luminance: tk.IntVar, luminances: list[tk.IntVar], root, current_luminance_frame=None):
         super().__init__(parent, padding=15)
+        self.luminance = luminance
         self.luminances = luminances
         self.root = root
         self.current_luminance_frame = current_luminance_frame
@@ -17,20 +18,15 @@ class AllLuminanceControllerFrame(ttk.Frame):
         control_frame.pack(fill=tk.X)
         ttk.Label(control_frame, text="Luminance:", style="Custom.TLabel").pack(side=tk.LEFT, padx=(0, 20))
 
-        # Get current luminance for initial value
-        current_luminances = monitor.get_luminances()
-        initial_value = current_luminances[0] if current_luminances else 50
-
         # Scale for luminance control with modern styling
-        self.luminance_var = tk.IntVar(value=initial_value)
-        self.scale = LuminanceScale(control_frame, variable=self.luminance_var, command=self._set_and_update)
+        self.scale = LuminanceScale(control_frame, variable=self.luminance, command=self._set_and_update)
         self.scale.pack(side=tk.LEFT, padx=(0, 20))
 
         # Current value display
         value_frame = ttk.Frame(control_frame)
         value_frame.pack(side=tk.LEFT)
 
-        self.current_value_label = ttk.Label(value_frame, text=str(initial_value), style="Accent.TLabel")
+        self.current_value_label = ttk.Label(value_frame, textvariable=self.luminance, style="Accent.TLabel")
         self.current_value_label.pack(side=tk.LEFT)
 
         ttk.Label(value_frame, text="%", style="Custom.TLabel").pack(side=tk.LEFT)

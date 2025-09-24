@@ -5,7 +5,7 @@ from components.custom_widgets import LuminanceScale
 
 
 class LuminanceControllerFrame(ttk.Frame):
-    def __init__(self, parent, luminances: list[tk.StringVar]):
+    def __init__(self, parent, luminances: list[tk.IntVar]):
         super().__init__(parent, padding=15)
         self.luminances = luminances
         self.sliders = []
@@ -41,7 +41,7 @@ class LuminanceControllerFrame(ttk.Frame):
 
             # Get initial value for slider
             try:
-                initial_value = int(luminance.get())
+                initial_value = luminance.get()
             except (ValueError, TypeError):
                 initial_value = 50
 
@@ -64,7 +64,7 @@ class LuminanceControllerFrame(ttk.Frame):
 
             # Update the corresponding luminance variable
             if monitor_index < len(self.luminances):
-                self.luminances[monitor_index].set(str(new_value))
+                self.luminances[monitor_index].set(new_value)
 
         except (ValueError, TypeError):
             pass
@@ -77,6 +77,6 @@ class LuminanceControllerFrame(ttk.Frame):
                 if i < len(current_values):
                     value = current_values[i]
                     slider.set(value)
-                    self.luminances[i].set(str(value))
+                    self.luminances[i].set(value)
         except Exception:
             pass

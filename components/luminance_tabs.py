@@ -5,7 +5,7 @@ from components.all_luminance_controller import AllLuminanceControllerFrame
 
 
 class LuminanceTabsFrame(ttk.Frame):
-    def __init__(self, parent, luminances: list[tk.StringVar], root):
+    def __init__(self, parent, luminances: list[tk.IntVar], root):
         super().__init__(parent)
         self.luminances = luminances
         self.root = root

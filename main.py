@@ -13,9 +13,9 @@ import darkdetect
 
 
 def setup_luminance_vars(root):
-    """Setup luminance variables as StringVar objects"""
+    """Setup luminance variables as IntVar objects"""
     values = monitor.get_luminances()
-    return [tk.StringVar(root, str(value)) for value in values]
+    return [tk.IntVar(root, value) for value in values]
 
 
 def schedule_worker():

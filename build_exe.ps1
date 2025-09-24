@@ -1,2 +1,10 @@
 # Windows用のexeファイルの生成
-uv run --group dev pyinstaller --name dimmer --noconsole --onefile --clean --collect-data schedule main.py
+uv run `
+--group dev pyinstaller `
+--name dimmer `
+--icon="assets/icon-dark.ico" `
+--add-data "assets/icon-dark.ico;assets/" `
+--add-data "assets/icon-light.ico;assets/" `
+--collect-data schedule `
+--noconsole --onefile --clean `
+main.py

@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from modules import monitor
 from components.custom_widgets import LuminanceScale
+from modules.performance import measure_time
 
 
 class AllLuminanceControllerFrame(ttk.Frame):
@@ -14,6 +15,7 @@ class AllLuminanceControllerFrame(ttk.Frame):
         # Control frame
         control_frame = ttk.Frame(self)
         control_frame.pack(fill=tk.X)
+        ttk.Label(control_frame, text="Luminance:", style="Custom.TLabel").pack(side=tk.LEFT, padx=(0, 20))
 
         # Get current luminance for initial value
         current_luminances = monitor.get_luminances()
@@ -33,9 +35,11 @@ class AllLuminanceControllerFrame(ttk.Frame):
 
         ttk.Label(value_frame, text="%", style="Custom.TLabel").pack(side=tk.LEFT)
 
+    @measure_time("set_and_update")
     def _set_and_update(self, value: str):
         """Update luminance when scale changes"""
         try:
+            print("_set_and_update called with value:", value)
             new_luminance = int(float(value))  # CustomScale already handles conversion
 
             # Update the current value label

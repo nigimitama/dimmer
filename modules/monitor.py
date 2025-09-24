@@ -1,4 +1,5 @@
 from monitorcontrol import get_monitors
+from modules.performance import measure_time
 
 
 def get_monitors_list():
@@ -6,6 +7,7 @@ def get_monitors_list():
     return list(get_monitors())
 
 
+@measure_time("get_luminances")
 def get_luminances() -> list[int]:
     values = []
     for monitor in get_monitors():
@@ -24,16 +26,18 @@ def get_monitor_luminance(monitor_index: int) -> int:
     return 0
 
 
+@measure_time("set_luminance")
 def set_luminance(value: int):
     """Set luminance for all monitors"""
     for monitor in get_monitors():
         with monitor:
             try:
                 monitor.set_luminance(value)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Error setting luminance for monitor: {e}")
 
 
+@measure_time("set_monitor_luminance")
 def set_monitor_luminance(monitor_index: int, value: int):
     """Set luminance for a specific monitor"""
     monitors = get_monitors_list()
@@ -42,5 +46,5 @@ def set_monitor_luminance(monitor_index: int, value: int):
         with monitor:
             try:
                 monitor.set_luminance(value)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Error setting luminance for monitor {monitor_index}: {e}")

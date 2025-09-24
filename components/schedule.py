@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 from modules.storage import Storage
 from modules import monitor
 import schedule
@@ -142,7 +142,7 @@ class ScheduleFrame(ttk.LabelFrame):
         self._update_jobs()
 
         # Show saved message
-        messagebox.showinfo("Saved", "Changes were saved")
+        print("Changes were saved")
 
     def _update_jobs(self):
         """Update scheduled jobs by given schedule inputs"""

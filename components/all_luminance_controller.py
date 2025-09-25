@@ -6,11 +6,12 @@ from modules.performance import measure_time
 
 
 class AllLuminanceControllerFrame(ttk.Frame):
-    def __init__(self, parent, luminance: tk.IntVar, luminances: list[tk.IntVar], root):
+    def __init__(self, parent, luminance: tk.IntVar, luminances: list[tk.IntVar], root: tk.Tk):
         super().__init__(parent, padding=15)
         self.luminance = luminance
         self.luminances = luminances
         self.root = root
+        self._pending_update = None
 
         # Control frame
         control_frame = ttk.Frame(self)
@@ -32,14 +33,27 @@ class AllLuminanceControllerFrame(ttk.Frame):
 
     @measure_time("set_and_update")
     def _set_and_update(self, value: str):
-        """Update luminance when scale changes"""
+        """Update luminance when scale changes with lazy evaluation"""
         try:
             print("_set_and_update called with value:", value)
             new_luminance = int(float(value))  # CustomScale already handles conversion
 
-            # Update the current value label
+            # Update the current value label immediately
             self.current_value_label.config(text=str(new_luminance))
 
+            # Cancel any pending update
+            if self._pending_update is not None:
+                self.root.after_cancel(self._pending_update)
+
+            # Schedule the expensive operations to run later (lazy evaluation)
+            self._pending_update = self.root.after(100, lambda: self._apply_luminance_change(new_luminance))
+
+        except (ValueError, TypeError):
+            pass
+
+    def _apply_luminance_change(self, new_luminance: int):
+        """Apply the actual luminance change to monitors (called lazily)"""
+        try:
             # Set luminance
             monitor.set_luminance(new_luminance)
 
@@ -48,5 +62,8 @@ class AllLuminanceControllerFrame(ttk.Frame):
             for luminance_var, monitor_value in zip(self.luminances, values):
                 luminance_var.set(monitor_value)
 
-        except (ValueError, TypeError):
-            pass
+            self._pending_update = None
+
+        except Exception as e:
+            print(f"Error applying luminance change: {e}")
+            self._pending_update = None

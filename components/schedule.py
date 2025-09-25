@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 from modules.storage import Storage
 from modules import monitor
 import schedule
@@ -65,7 +65,7 @@ class ScheduleInputFrame(ttk.Frame):
 
 
 class ScheduleFrame(ttk.LabelFrame):
-    def __init__(self, parent, luminance_vars: list[tk.StringVar], root):
+    def __init__(self, parent, luminance_vars: list[tk.IntVar], root):
         super().__init__(parent, text="Schedule", padding=15)
         self.luminance_vars = luminance_vars
         self.root = root
@@ -141,7 +141,7 @@ class ScheduleFrame(ttk.LabelFrame):
         self._update_jobs()
 
         # Show saved message
-        messagebox.showinfo("Saved", "Changes were saved")
+        print("Changes were saved")
 
     def _update_jobs(self):
         """Update scheduled jobs by given schedule inputs"""
@@ -150,12 +150,16 @@ class ScheduleFrame(ttk.LabelFrame):
             result = schedule_input.get_values()
             if result:
                 hour, minute, luminance = result
-                job = ScheduledJob(root=self.root, luminance_vars=self.luminance_vars, new_luminance=luminance)
+                job = ScheduledJob(
+                    root=self.root,
+                    luminance_vars=self.luminance_vars,
+                    new_luminance=luminance,
+                )
                 schedule.every().day.at(f"{hour:02d}:{minute:02d}").do(job.set_and_update)
 
 
 class ScheduledJob:
-    def __init__(self, root, luminance_vars: list[tk.StringVar], new_luminance: int):
+    def __init__(self, root, luminance_vars: list[tk.IntVar], new_luminance: int):
         self.root = root
         self.new_luminance = new_luminance
         self.luminance_vars = luminance_vars
@@ -168,4 +172,4 @@ class ScheduledJob:
         # Update current luminance displaying
         values = monitor.get_luminances()
         for luminance_var, value in zip(self.luminance_vars, values):
-            luminance_var.set(str(value))
+            luminance_var.set(value)

@@ -1,37 +1,27 @@
 """System tray icon management for Dimmer application"""
 
+from PIL import Image
 import threading
 import tkinter as tk
-from PIL import Image, ImageDraw
+import darkdetect
 import pystray
 from pystray import MenuItem as item
 
+from modules.path import resource_path
 
-def create_icon() -> Image.Image:
-    """Create a simple icon for the system tray"""
-    # Create a 64x64 image with transparent background
-    image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(image)
 
-    # Draw a simple brightness/monitor icon
-    # Monitor frame
-    draw.rectangle([8, 16, 56, 40], outline=(255, 255, 255, 255), width=2)
-    # Monitor stand
-    draw.rectangle([28, 40, 36, 48], fill=(255, 255, 255, 255))
-    draw.rectangle([20, 48, 44, 52], fill=(255, 255, 255, 255))
-
-    # Brightness rays around the monitor
-    for i in range(0, 360, 45):
-        import math
-
-        angle = math.radians(i)
-        x1 = 32 + 24 * math.cos(angle)
-        y1 = 28 + 12 * math.sin(angle)
-        x2 = 32 + 30 * math.cos(angle)
-        y2 = 28 + 15 * math.sin(angle)
-        draw.line([x1, y1, x2, y2], fill=(255, 255, 255, 255), width=2)
-
-    return image
+def load_icon():
+    try:
+        theme = darkdetect.theme()
+        icon_theme = "light" if theme == "dark" else "dark"
+        path = resource_path(f"assets/icon-{icon_theme}.ico")
+        with open(path, "rb") as f:
+            icon_image = Image.open(f)
+        return icon_image
+    except Exception as e:
+        print(f"Error loading icon: {e}")
+        raise e
+        # return Image.new("RGB", (64, 64), color=(255, 0, 0))
 
 
 class SystemTrayManager:
@@ -44,11 +34,12 @@ class SystemTrayManager:
 
     def create_tray_icon(self):
         """Create and configure the system tray icon"""
-        icon_image = create_icon()
-
-        menu = pystray.Menu(item("Show/Hide", self.toggle_window, default=True), item("Exit", self.quit_application))
-
-        self.icon = pystray.Icon("Dimmer", icon_image, "Dimmer - Monitor Brightness Control", menu)
+        self.icon = pystray.Icon(
+            name="Dimmer",
+            icon=load_icon(),
+            title="Dimmer - Monitor Brightness Control",
+            menu=pystray.Menu(item("Show/Hide", self.toggle_window, default=True), item("Exit", self.quit_application)),
+        )
 
     def toggle_window(self, icon=None, item=None):
         """Toggle window visibility"""

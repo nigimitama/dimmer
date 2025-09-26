@@ -39,6 +39,9 @@ def main():
     sv_ttk.set_theme(theme)
     apply_theme_to_titlebar(root, theme)
 
+    # set icon
+    root.iconbitmap(f"assets/icon-{theme}.ico")
+
     # Configure custom styles
     configure_styles()
 

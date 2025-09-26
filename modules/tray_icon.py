@@ -12,16 +12,13 @@ from modules.path import resource_path
 
 def load_icon():
     try:
-        theme = darkdetect.theme()
-        icon_theme = "light" if theme == "dark" else "dark"
-        path = resource_path(f"assets/icon-{icon_theme}.ico")
+        theme = darkdetect.theme() or "light"
+        path = resource_path(f"assets/icon-{theme}.ico")
         with open(path, "rb") as f:
             icon_image = Image.open(f)
         return icon_image
-    except Exception as e:
-        print(f"Error loading icon: {e}")
-        raise e
-        # return Image.new("RGB", (64, 64), color=(255, 0, 0))
+    except Exception:
+        return Image.new("RGB", (64, 64), color=(0, 0, 0))
 
 
 class SystemTrayManager:

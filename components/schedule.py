@@ -9,13 +9,13 @@ class ScheduleInputFrame(ttk.Frame):
     """Frame for input hours, minutes and value of luminance"""
 
     def __init__(self, parent, hour=0, minute=0, luminance=50, on_change=None, on_delete=None):
-        super().__init__(parent, padding=10, relief="solid", borderwidth=1)
+        super().__init__(parent, padding=10)
         self.on_change = on_change
         self.on_delete = on_delete
 
         # Hour combobox
         self.hour_var = tk.StringVar(value=f"{hour:02d}")
-        hour_label = ttk.Label(self, text="Hour:", style="Custom.TLabel")
+        hour_label = ttk.Label(self, text="Hour:")
         hour_label.grid(row=0, column=0, padx=(0, 5), sticky="w")
         self.hour_combo = ttk.Combobox(
             self, textvariable=self.hour_var, values=[f"{h:02d}" for h in range(24)], width=8, state="readonly"
@@ -25,7 +25,7 @@ class ScheduleInputFrame(ttk.Frame):
 
         # Minute combobox
         self.minute_var = tk.StringVar(value=f"{minute:02d}")
-        minute_label = ttk.Label(self, text="Minute:", style="Custom.TLabel")
+        minute_label = ttk.Label(self, text="Minute:")
         minute_label.grid(row=0, column=2, padx=(0, 5), sticky="w")
         self.minute_combo = ttk.Combobox(
             self, textvariable=self.minute_var, values=[f"{m:02d}" for m in range(60)], width=8, state="readonly"
@@ -35,7 +35,7 @@ class ScheduleInputFrame(ttk.Frame):
 
         # Luminance entry
         self.luminance_var = tk.StringVar(value=str(luminance))
-        luminance_label = ttk.Label(self, text="Luminance:", style="Custom.TLabel")
+        luminance_label = ttk.Label(self, text="Luminance:")
         luminance_label.grid(row=0, column=4, padx=(0, 5), sticky="w")
         self.luminance_entry = ttk.Entry(self, textvariable=self.luminance_var, width=10)
         self.luminance_entry.grid(row=0, column=5, padx=(0, 15))
@@ -73,9 +73,7 @@ class ScheduleFrame(ttk.LabelFrame):
         self.schedule_inputs = []
 
         # Description label
-        desc_label = ttk.Label(
-            self, text="Luminance will be set at the scheduled time every day", style="Custom.TLabel"
-        )
+        desc_label = ttk.Label(self, text="Luminance will be set at the scheduled time every day")
         desc_label.pack(anchor="w", pady=(0, 15))
 
         # Scrollable frame for schedule inputs
@@ -96,7 +94,7 @@ class ScheduleFrame(ttk.LabelFrame):
         add_button_frame.pack(fill=tk.X, pady=(10, 0))
 
         self.add_button = ttk.Button(add_button_frame, text="Add Schedule", command=self._add_schedule)
-        self.add_button.pack(anchor="w")
+        self.add_button.pack(anchor="w", padx=(0, 10))
 
         self._load()
 

@@ -4,4 +4,5 @@
 
 GUI application to control luminance of monitors.
 
-![image-20230425111150621](assets/image-20230425111150621.png)
+![image-20250927232132900](assets/app-window.png)
+

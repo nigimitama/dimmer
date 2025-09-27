@@ -7,7 +7,7 @@ from tkinter import ttk
 import sv_ttk
 from components.luminance_tabs import LuminanceTabsFrame
 from components.schedule import ScheduleFrame
-from components.style import Theme, apply_theme_to_titlebar, configure_styles
+from components.style import ThemeCapital, apply_theme_to_titlebar, configure_styles, lower_theme
 from modules import monitor
 from modules.tray_icon import SystemTrayManager
 import darkdetect
@@ -34,12 +34,12 @@ def main():
     root.geometry("900x700")
 
     # set dark or light theme
-    system_setting: Theme | None = darkdetect.theme()
-    theme = system_setting or "light"
+    system_setting: ThemeCapital | None = darkdetect.theme()
+    theme = lower_theme(system_setting or "Light")
     sv_ttk.set_theme(theme)
     apply_theme_to_titlebar(root, theme)
 
-    # set icon
+    # set icon on titlebar
     root.iconbitmap(f"assets/icon-{theme}.ico")
 
     # Configure custom styles

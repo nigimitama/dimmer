@@ -6,6 +6,16 @@ from tkinter import ttk
 FAMILY = "Segoe UI"
 
 type Theme = Literal["light", "dark"]
+type ThemeCapital = Literal["Dark", "Light"]
+
+
+def lower_theme(theme: ThemeCapital) -> Theme:
+    """Convert ThemeCapital to Theme"""
+    theme_map: dict[ThemeCapital, Theme] = {
+        "Dark": "dark",
+        "Light": "light",
+    }
+    return theme_map.get(theme, "light")
 
 
 def configure_styles():

@@ -9,6 +9,7 @@ from components.luminance_tabs import LuminanceTabsFrame
 from components.schedule import ScheduleFrame
 from components.style import ThemeCapital, apply_theme_to_titlebar, configure_styles, lower_theme
 from modules import monitor
+from modules.path import resource_path
 from modules.tray_icon import SystemTrayManager
 import darkdetect
 
@@ -40,7 +41,7 @@ def main():
     apply_theme_to_titlebar(root, theme)
 
     # set icon on titlebar
-    root.iconbitmap(f"assets/icon-{theme}.ico")
+    root.iconbitmap(resource_path(f"assets/icon-{theme}.ico"))
 
     # Configure custom styles
     configure_styles()

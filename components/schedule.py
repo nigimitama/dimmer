@@ -5,6 +5,24 @@ from modules import monitor
 import schedule
 
 
+def generate_default_schedule():
+    """Generate default schedule settings"""
+    return [
+        # list[hour, minute, luminance]
+        [6, 0, 70],
+        [7, 0, 80],
+        [8, 0, 90],
+        [9, 0, 100],
+        [17, 0, 90],
+        [18, 0, 80],
+        [19, 0, 60],
+        [20, 0, 40],
+        [21, 0, 30],
+        [22, 0, 10],
+        [23, 0, 0],
+    ]
+
+
 class ScheduleInputFrame(ttk.Frame):
     """Frame for input hours, minutes and value of luminance"""
 
@@ -89,12 +107,15 @@ class ScheduleFrame(ttk.LabelFrame):
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
 
-        # Add button
-        add_button_frame = ttk.Frame(self)
-        add_button_frame.pack(fill=tk.X, pady=(10, 0))
+        # Buttons
+        button_frame = ttk.Frame(self)
+        button_frame.pack(fill=tk.X, pady=(10, 0))
 
-        self.add_button = ttk.Button(add_button_frame, text="Add Schedule", command=self._add_schedule)
-        self.add_button.pack(anchor="w", padx=(0, 10))
+        self.reset_button = ttk.Button(button_frame, text="Reset to Default", command=self._reset_to_default)
+        self.reset_button.pack(anchor="w", pady=(0, 5), padx=(0, 5))
+
+        self.add_button = ttk.Button(button_frame, text="Add Schedule", command=self._add_schedule)
+        self.add_button.pack(anchor="w")
 
         self._load()
 
@@ -113,7 +134,13 @@ class ScheduleFrame(ttk.LabelFrame):
             self._save()
 
     def _load(self):
-        values = self.storage.get(key="schedule") or []
+        values = self.storage.get(key="schedule")
+
+        # If no schedule exists, generate default
+        if values is None:
+            values = generate_default_schedule()
+            self.storage.set(key="schedule", value=values)
+
         for hour, minute, luminance in values:
             schedule_input = ScheduleInputFrame(
                 self.scrollable_frame,
@@ -140,6 +167,33 @@ class ScheduleFrame(ttk.LabelFrame):
 
         # Show saved message
         print("Changes were saved")
+
+    def _reset_to_default(self):
+        """Reset schedule to default settings"""
+        # Clear current schedule inputs
+        for schedule_input in self.schedule_inputs:
+            schedule_input.destroy()
+        self.schedule_inputs.clear()
+
+        # Load default schedule
+        default_values = generate_default_schedule()
+        self.storage.set(key="schedule", value=default_values)
+
+        # Create new schedule inputs with default values
+        for hour, minute, luminance in default_values:
+            schedule_input = ScheduleInputFrame(
+                self.scrollable_frame,
+                hour=hour,
+                minute=minute,
+                luminance=luminance,
+                on_change=self._save,
+                on_delete=self._delete_schedule,
+            )
+            schedule_input.pack(fill=tk.X, pady=2)
+            self.schedule_inputs.append(schedule_input)
+
+        self._update_jobs()
+        print("Schedule reset to default")
 
     def _update_jobs(self):
         """Update scheduled jobs by given schedule inputs"""

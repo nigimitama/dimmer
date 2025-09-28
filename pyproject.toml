@@ -7,12 +7,17 @@ requires-python = ">=3.13"
 dependencies = [
     "monitorcontrol>=4.1.1",
     "schedule>=1.2.2",
+    "pystray>=0.19.5",
+    "pillow>=10.0.0",
+    "sv-ttk>=2.6.0",
+    "darkdetect>=0.8.0",
+    "pywinstyles>=1.8",
 ]
 
 [dependency-groups]
 dev = [
-    "flet[all]>=0.28.3",
     "pre-commit>=4.3.0",
+    "pyinstaller>=6.16.0",
     "pyright>=1.1.405",
     "ruff>=0.13.0",
 ]

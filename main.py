@@ -1,16 +1,25 @@
+from statistics import mean
 import time
 import schedule
 import threading
-import flet as ft
-from components.current_luminance import current_luminance
-from components.set_luminance import set_luminance
-from components.schedule import ScheduleControl
+import tkinter as tk
+from tkinter import ttk
+import sv_ttk
+from components.luminance_tabs import LuminanceTabsFrame
+from components.schedule import ScheduleFrame
+from components.style import ThemeCapital, apply_theme_to_titlebar, configure_styles, lower_theme
 from modules import monitor
+from modules.path import resource_path
+from modules.tray_icon import SystemTrayManager
+import darkdetect
 
 
-def setup_luminance_vars() -> list[ft.Text]:
+def setup_variables(root):
+    """Setup luminance variables as IntVar objects"""
     values = monitor.get_luminances()
-    return [ft.Text(value=str(value)) for value in values]
+    luminance_vars = [tk.IntVar(root, value) for value in values]
+    luminance_var = tk.IntVar(root, int(mean(values)) if values else 50)
+    return luminance_vars, luminance_var
 
 
 def schedule_worker():
@@ -20,22 +29,56 @@ def schedule_worker():
         time.sleep(1)
 
 
-def main(page: ft.Page):
-    page.title = "Dimmer"
-    page.window.width = 600
-    page.window.height = 600
-    page.scroll = ft.ScrollMode.ADAPTIVE
-    page.vertical_alignment = ft.MainAxisAlignment.START
+def main():
+    root = tk.Tk()
+    root.title("Dimmer")
+    root.geometry("900x700")
 
-    luminance_vars = setup_luminance_vars()
-    page.add(
-        current_luminance(luminance_vars), set_luminance(page, luminance_vars), ScheduleControl(page, luminance_vars)
-    )
+    # set dark or light theme
+    system_setting: ThemeCapital | None = darkdetect.theme()
+    theme = lower_theme(system_setting or "Light")
+    sv_ttk.set_theme(theme)
+    apply_theme_to_titlebar(root, theme)
+
+    # set icon on titlebar
+    root.iconbitmap(resource_path(f"assets/icon-{theme}.ico"))
+
+    # Configure custom styles
+    configure_styles()
+
+    # Setup system tray
+    tray_manager = SystemTrayManager(root)
+
+    # Override the close button to hide instead of exit
+    def on_closing():
+        tray_manager.hide_window()
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
+    # Setup shared luminance variables
+    luminance_vars, luminance_var = setup_variables(root)
+
+    # Create main frame with modern styling
+    main_frame = ttk.Frame(root)
+    main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+    # Create luminance control tabs
+    luminance_tabs = LuminanceTabsFrame(main_frame, luminance_var, luminance_vars, root)
+    luminance_tabs.pack(fill=tk.X, pady=(0, 15))
+
+    schedule_frame = ScheduleFrame(main_frame, luminance_vars, root)
+    schedule_frame.pack(fill=tk.BOTH, expand=True)
 
     # Start the schedule worker in a separate thread
     schedule_thread = threading.Thread(target=schedule_worker, daemon=True)
     schedule_thread.start()
 
+    # Start system tray
+    tray_manager.start_tray()
+
+    # Start the main loop
+    root.mainloop()
+
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    main()

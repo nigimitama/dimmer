@@ -83,8 +83,9 @@ class ScheduleInputFrame(ttk.Frame):
 
 
 class ScheduleFrame(ttk.LabelFrame):
-    def __init__(self, parent, luminance_vars: list[tk.IntVar], root):
+    def __init__(self, parent, luminance_var: tk.IntVar, luminance_vars: list[tk.IntVar], root):
         super().__init__(parent, text="Schedule", padding=15)
+        self.luminance_var = luminance_var
         self.luminance_vars = luminance_vars
         self.root = root
         self.storage = Storage()
@@ -204,6 +205,7 @@ class ScheduleFrame(ttk.LabelFrame):
                 hour, minute, luminance = result
                 job = ScheduledJob(
                     root=self.root,
+                    luminance_var=self.luminance_var,
                     luminance_vars=self.luminance_vars,
                     new_luminance=luminance,
                 )
@@ -211,8 +213,9 @@ class ScheduleFrame(ttk.LabelFrame):
 
 
 class ScheduledJob:
-    def __init__(self, root, luminance_vars: list[tk.IntVar], new_luminance: int):
+    def __init__(self, root, luminance_var: tk.IntVar, luminance_vars: list[tk.IntVar], new_luminance: int):
         self.root = root
+        self.luminance_var = luminance_var
         self.new_luminance = new_luminance
         self.luminance_vars = luminance_vars
 
@@ -225,3 +228,9 @@ class ScheduledJob:
         values = monitor.get_luminances()
         for luminance_var, value in zip(self.luminance_vars, values):
             luminance_var.set(value)
+
+        # Update the slider value for all monitors control
+        from statistics import mean
+
+        if values:
+            self.luminance_var.set(int(mean(values)))

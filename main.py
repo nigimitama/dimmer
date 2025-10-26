@@ -66,7 +66,7 @@ def main():
     luminance_tabs = LuminanceTabsFrame(main_frame, luminance_var, luminance_vars, root)
     luminance_tabs.pack(fill=tk.X, pady=(0, 15))
 
-    schedule_frame = ScheduleFrame(main_frame, luminance_vars, root)
+    schedule_frame = ScheduleFrame(main_frame, luminance_var, luminance_vars, root)
     schedule_frame.pack(fill=tk.BOTH, expand=True)
 
     # Start the schedule worker in a separate thread

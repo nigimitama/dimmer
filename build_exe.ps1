@@ -1,5 +1,4 @@
 # Windows用のexeファイルの生成
-# CIでもビルドしているので、こちらはローカルテスト用
 uv run `
     --group dev pyinstaller `
     --name dimmer `

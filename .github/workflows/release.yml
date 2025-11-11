@@ -32,14 +32,14 @@ jobs:
 
       - name: Build binary (Windows)
         if: runner.os == 'Windows'
-        run: .\build_exe.ps1
+        run: .\build.ps1
         shell: pwsh
 
       - name: Build binary (macOS)
         if: runner.os != 'Windows'
         run: |
-          chmod +x build_exe.sh
-          ./build_exe.sh
+          chmod +x build.sh
+          ./build.sh
 
           # zip the .app bundle
           cd dist

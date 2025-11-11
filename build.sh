@@ -1,5 +1,4 @@
 #!/bin/bash
-# Linux/macOS用のバイナリファイルの生成
 uv run \
     --group dev pyinstaller \
     --name dimmer \

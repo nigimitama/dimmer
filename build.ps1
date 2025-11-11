@@ -1,4 +1,4 @@
-# Windows用のexeファイルの生成
+# build .exe for Windows
 uv run `
     --group dev pyinstaller `
     --name dimmer `

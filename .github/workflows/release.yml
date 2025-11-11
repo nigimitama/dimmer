@@ -52,11 +52,6 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Release Please
-        uses: googleapis/release-please-action@v4
-        with:
-          release-type: python
-
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -68,7 +63,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           files: |
-            artifacts/dist/dimmer.exe
+            artifacts/dimmer-windows-latest/dimmer.exe
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

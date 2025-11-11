@@ -52,6 +52,11 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4

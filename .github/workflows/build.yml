@@ -2,9 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches: [master]
-  pull_request:
-  workflow_dispatch: # 手動実行を許可
+    tags:
+      - "v*" # `git push origin v1.0.0` のようなタグのpushをトリガーに実行
 
 jobs:
   build:
@@ -53,8 +52,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4

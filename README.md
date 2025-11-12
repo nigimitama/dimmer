@@ -13,7 +13,7 @@ GUI application to control luminance of monitors.
 
 ## 📩 Download
 
-Download the latest version from the [releases](https://github.com/nigimitama/dimmer/releases) page.
+Download the latest version of `.exe` file from the [releases](https://github.com/nigimitama/dimmer/releases) page.
 
 ## 💻️ Supported Platform
 

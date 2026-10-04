@@ -13,3 +13,5 @@ generated*.ico
 
 CLAUDE.md
 .claude/
+
+.superpowers/

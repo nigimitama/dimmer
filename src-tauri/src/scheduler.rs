@@ -1,11 +1,13 @@
 //! 30秒ごとの tick で「今のスロット」と「適用済みのスロット」を比べ、必要なら輝度を適用する。
 //! 壁時計が想定より大きく進んだ（または戻った）tick は、スリープ復帰とみなして再適用する。
 
-use crate::monitor::{apply_with_retry, ApplyResult, MonitorBackend, RETRY_DELAYS};
+use crate::monitor::{apply_with_retry, read_all, ApplyResult, MonitorBackend, RETRY_DELAYS};
 use crate::schedule::{current_slot, ScheduleEntry, Slot};
-use chrono::NaiveDateTime;
+use crate::state::AppState;
+use chrono::{Local, NaiveDateTime};
 use std::sync::Mutex;
 use std::time::Duration;
+use tauri::{AppHandle, Emitter, Manager};
 
 pub const TICK_INTERVAL: Duration = Duration::from_secs(30);
 pub const RESUME_GAP_SECS: i64 = 90;
@@ -95,6 +97,21 @@ pub fn run_once(
         log::warn!("slot {} not applied to any monitor; will retry next tick", slot.id);
     }
     true
+}
+
+pub fn spawn(app: AppHandle) {
+    std::thread::Builder::new()
+        .name("scheduler".into())
+        .spawn(move || loop {
+            let state = app.state::<AppState>();
+            let entries = state.settings.get().schedule;
+            let now = Local::now().naive_local();
+            if run_once(state.backend.as_ref(), &state.scheduler, &entries, now, &std::thread::sleep) {
+                let _ = app.emit("monitors-updated", read_all(state.backend.as_ref()));
+            }
+            std::thread::sleep(TICK_INTERVAL);
+        })
+        .expect("failed to spawn scheduler thread");
 }
 
 #[cfg(test)]

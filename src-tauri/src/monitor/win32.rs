@@ -138,12 +138,14 @@ fn friendly_names() -> HashMap<String, String> {
             return names;
         }
         for path in &paths[..n_paths as usize] {
-            let mut target = DISPLAYCONFIG_TARGET_DEVICE_NAME::default();
-            target.header = DISPLAYCONFIG_DEVICE_INFO_HEADER {
-                r#type: DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME,
-                size: std::mem::size_of::<DISPLAYCONFIG_TARGET_DEVICE_NAME>() as u32,
-                adapterId: path.targetInfo.adapterId,
-                id: path.targetInfo.id,
+            let mut target = DISPLAYCONFIG_TARGET_DEVICE_NAME {
+                header: DISPLAYCONFIG_DEVICE_INFO_HEADER {
+                    r#type: DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME,
+                    size: std::mem::size_of::<DISPLAYCONFIG_TARGET_DEVICE_NAME>() as u32,
+                    adapterId: path.targetInfo.adapterId,
+                    id: path.targetInfo.id,
+                },
+                ..Default::default()
             };
             if DisplayConfigGetDeviceInfo(&mut target.header) != 0 {
                 continue;

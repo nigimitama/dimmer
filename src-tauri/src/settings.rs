@@ -127,9 +127,11 @@ mod tests {
     fn save_then_load_round_trips() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("settings.json");
-        let mut s = Settings::default();
-        s.autostart = false;
-        s.schedule = vec![ScheduleEntry { time: "12:00".into(), brightness: 40 }];
+        let s = Settings {
+            autostart: false,
+            schedule: vec![ScheduleEntry { time: "12:00".into(), brightness: 40 }],
+            ..Default::default()
+        };
         save(&path, &s).unwrap();
         let (loaded, outcome) = load_or_init(&path).unwrap();
         assert_eq!(outcome, LoadOutcome::Loaded);

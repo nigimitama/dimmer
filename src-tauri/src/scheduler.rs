@@ -30,7 +30,12 @@ pub struct Decision {
 }
 
 impl SchedulerState {
-    pub fn tick(&mut self, now: NaiveDateTime, mut monitor_ids: Vec<String>, entries: &[ScheduleEntry]) -> Decision {
+    pub fn tick(
+        &mut self,
+        now: NaiveDateTime,
+        mut monitor_ids: Vec<String>,
+        entries: &[ScheduleEntry],
+    ) -> Decision {
         monitor_ids.sort();
         let first = self.last_tick.is_none();
         let resumed = self.last_tick.is_some_and(|prev| {
@@ -46,7 +51,12 @@ impl SchedulerState {
             self.last_applied = None;
         }
         let apply = current_slot(entries, now).filter(|slot| self.last_applied != Some(slot.id));
-        Decision { apply, resumed, monitors_changed, first }
+        Decision {
+            apply,
+            resumed,
+            monitors_changed,
+            first,
+        }
     }
 
     pub fn record_result(&mut self, slot: Slot, result: &ApplyResult) -> bool {
@@ -94,7 +104,10 @@ pub fn run_once(
         log::warn!("failed to apply to {} ({}): {}", f.name, f.id, f.error);
     }
     if !scheduler.lock().unwrap().record_result(slot, &result) {
-        log::warn!("slot {} not applied to any monitor; will retry next tick", slot.id);
+        log::warn!(
+            "slot {} not applied to any monitor; will retry next tick",
+            slot.id
+        );
     }
     true
 }
@@ -106,7 +119,13 @@ pub fn spawn(app: AppHandle) {
             let state = app.state::<AppState>();
             let entries = state.settings.get().schedule;
             let now = Local::now().naive_local();
-            if run_once(state.backend.as_ref(), &state.scheduler, &entries, now, &std::thread::sleep) {
+            if run_once(
+                state.backend.as_ref(),
+                &state.scheduler,
+                &entries,
+                now,
+                &std::thread::sleep,
+            ) {
                 let _ = app.emit("monitors-updated", read_all(state.backend.as_ref()));
             }
             std::thread::sleep(TICK_INTERVAL);
@@ -124,13 +143,22 @@ mod tests {
 
     fn entries() -> Vec<ScheduleEntry> {
         vec![
-            ScheduleEntry { time: "06:00".into(), brightness: 70 },
-            ScheduleEntry { time: "18:00".into(), brightness: 80 },
+            ScheduleEntry {
+                time: "06:00".into(),
+                brightness: 70,
+            },
+            ScheduleEntry {
+                time: "18:00".into(),
+                brightness: 80,
+            },
         ]
     }
 
     fn at(h: u32, m: u32, s: u32) -> NaiveDateTime {
-        NaiveDate::from_ymd_opt(2026, 10, 5).unwrap().and_hms_opt(h, m, s).unwrap()
+        NaiveDate::from_ymd_opt(2026, 10, 5)
+            .unwrap()
+            .and_hms_opt(h, m, s)
+            .unwrap()
     }
 
     fn ids() -> Vec<String> {
@@ -138,13 +166,20 @@ mod tests {
     }
 
     fn ok(n: usize) -> ApplyResult {
-        ApplyResult { attempted: n, failed: vec![] }
+        ApplyResult {
+            attempted: n,
+            failed: vec![],
+        }
     }
 
     fn all_failed() -> ApplyResult {
         ApplyResult {
             attempted: 1,
-            failed: vec![ApplyFailure { id: "a".into(), name: "A".into(), error: "x".into() }],
+            failed: vec![ApplyFailure {
+                id: "a".into(),
+                name: "A".into(),
+                error: "x".into(),
+            }],
         }
     }
 
@@ -182,7 +217,11 @@ mod tests {
     #[test]
     fn long_gap_is_treated_as_resume_and_reapplies_same_slot() {
         let mut s = applied_at(at(19, 0, 0));
-        let d = s.tick(at(19, 0, 0) + ChronoDuration::seconds(RESUME_GAP_SECS), ids(), &entries());
+        let d = s.tick(
+            at(19, 0, 0) + ChronoDuration::seconds(RESUME_GAP_SECS),
+            ids(),
+            &entries(),
+        );
         assert!(d.resumed);
         assert_eq!(d.apply.unwrap().brightness, 80);
     }
@@ -224,7 +263,10 @@ mod tests {
     fn partial_success_marks_applied() {
         let mut s = SchedulerState::default();
         let d = s.tick(at(19, 0, 0), ids(), &entries());
-        let partial = ApplyResult { attempted: 2, ..all_failed() };
+        let partial = ApplyResult {
+            attempted: 2,
+            ..all_failed()
+        };
         assert!(s.record_result(d.apply.unwrap(), &partial));
         assert_eq!(s.tick(at(19, 0, 30), ids(), &entries()).apply, None);
     }
@@ -254,7 +296,10 @@ mod tests {
         // 19:00 に 18:00 のスロットを適用済み。そこへ 18:30 のエントリを追加して保存する
         let mut s = applied_at(at(19, 0, 0));
         let mut edited = entries();
-        edited.push(ScheduleEntry { time: "18:30".into(), brightness: 50 });
+        edited.push(ScheduleEntry {
+            time: "18:30".into(),
+            brightness: 50,
+        });
         s.mark_current_applied(&edited, at(19, 0, 5));
         // mark しなければ 18:30 のスロットが新しく適用されるが、mark したので適用されない
         assert_eq!(s.tick(at(19, 0, 30), ids(), &edited).apply, None);
@@ -273,7 +318,10 @@ mod tests {
         backend.fail_sets("a", 1);
         let updated = run_once(&backend, &scheduler, &entries(), at(19, 0, 0), &|_| {});
         assert!(updated);
-        assert_eq!(backend.set_calls(), vec![("a".to_string(), 80), ("a".to_string(), 80)]);
+        assert_eq!(
+            backend.set_calls(),
+            vec![("a".to_string(), 80), ("a".to_string(), 80)]
+        );
         let again = run_once(&backend, &scheduler, &entries(), at(19, 0, 30), &|_| {});
         assert!(!again);
         assert_eq!(backend.set_calls().len(), 2);

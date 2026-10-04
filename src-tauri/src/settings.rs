@@ -19,7 +19,11 @@ pub struct Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        Self { version: CURRENT_VERSION, autostart: true, schedule: default_schedule() }
+        Self {
+            version: CURRENT_VERSION,
+            autostart: true,
+            schedule: default_schedule(),
+        }
     }
 }
 
@@ -46,7 +50,10 @@ fn parse(text: &str) -> Option<Settings> {
         return None;
     }
     let schedule = normalize(&settings.schedule).ok()?;
-    Some(Settings { schedule, ..settings })
+    Some(Settings {
+        schedule,
+        ..settings
+    })
 }
 
 pub fn load_or_init(path: &Path) -> io::Result<(Settings, LoadOutcome)> {
@@ -88,7 +95,13 @@ pub struct SettingsStore {
 impl SettingsStore {
     pub fn open(path: PathBuf) -> io::Result<(Self, LoadOutcome)> {
         let (settings, outcome) = load_or_init(&path)?;
-        Ok((Self { path, current: Mutex::new(settings) }, outcome))
+        Ok((
+            Self {
+                path,
+                current: Mutex::new(settings),
+            },
+            outcome,
+        ))
     }
 
     pub fn get(&self) -> Settings {
@@ -129,7 +142,10 @@ mod tests {
         let path = dir.path().join("settings.json");
         let s = Settings {
             autostart: false,
-            schedule: vec![ScheduleEntry { time: "12:00".into(), brightness: 40 }],
+            schedule: vec![ScheduleEntry {
+                time: "12:00".into(),
+                brightness: 40,
+            }],
             ..Default::default()
         };
         save(&path, &s).unwrap();
@@ -159,7 +175,10 @@ mod tests {
         let (settings, outcome) = load_or_init(&path).unwrap();
         assert_eq!(outcome, LoadOutcome::RecoveredFromCorrupt);
         assert_eq!(settings, Settings::default());
-        assert_eq!(std::fs::read_to_string(backup_path(&path)).unwrap(), content);
+        assert_eq!(
+            std::fs::read_to_string(backup_path(&path)).unwrap(),
+            content
+        );
         let (reloaded, outcome) = load_or_init(&path).unwrap();
         assert_eq!(outcome, LoadOutcome::Loaded);
         assert_eq!(reloaded, Settings::default());

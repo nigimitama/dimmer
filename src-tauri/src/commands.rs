@@ -31,7 +31,10 @@ pub async fn set_brightness_all(app: AppHandle, value: u8) -> Result<ApplyResult
 
 #[tauri::command]
 pub async fn set_brightness(app: AppHandle, id: String, value: u8) -> Result<ApplyResult, String> {
-    blocking(app, move |s| apply_one(s.backend.as_ref(), &id, value.min(100))).await
+    blocking(app, move |s| {
+        apply_one(s.backend.as_ref(), &id, value.min(100))
+    })
+    .await
 }
 
 #[tauri::command]
@@ -56,7 +59,10 @@ fn store_schedule(state: &AppState, entries: Vec<ScheduleEntry>) -> Result<Setti
 // save_schedule と reset_schedule は DDC を伴わないので同期 command にする。
 // UI スレッドで順番に処理されるため、保存の順序が入れ替わらない
 #[tauri::command]
-pub fn save_schedule(state: State<'_, AppState>, entries: Vec<ScheduleEntry>) -> Result<Settings, String> {
+pub fn save_schedule(
+    state: State<'_, AppState>,
+    entries: Vec<ScheduleEntry>,
+) -> Result<Settings, String> {
     store_schedule(&state, entries)
 }
 
@@ -66,9 +72,17 @@ pub fn reset_schedule(state: State<'_, AppState>) -> Result<Settings, String> {
 }
 
 #[tauri::command]
-pub fn set_autostart(app: AppHandle, state: State<'_, AppState>, enabled: bool) -> Result<Settings, String> {
+pub fn set_autostart(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    enabled: bool,
+) -> Result<Settings, String> {
     let launcher = app.autolaunch();
-    let result = if enabled { launcher.enable() } else { launcher.disable() };
+    let result = if enabled {
+        launcher.enable()
+    } else {
+        launcher.disable()
+    };
     result.map_err(|e| format!("自動起動の設定を変更できません: {e}"))?;
     state
         .settings

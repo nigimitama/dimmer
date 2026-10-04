@@ -28,16 +28,26 @@ pub(crate) struct RawMonitor {
 }
 
 /// 列挙結果から一意な ID と表示名を作る。names のキーは小文字のデバイスパス
-pub(crate) fn build_idents(raw: &[RawMonitor], names: &HashMap<String, String>) -> Vec<MonitorIdent> {
+pub(crate) fn build_idents(
+    raw: &[RawMonitor],
+    names: &HashMap<String, String>,
+) -> Vec<MonitorIdent> {
     let mut id_counts: HashMap<String, usize> = HashMap::new();
     let mut idents: Vec<MonitorIdent> = raw
         .iter()
         .enumerate()
         .map(|(i, r)| {
-            let base = r.device_path.clone().unwrap_or_else(|| format!("{}#{}", r.description, i + 1));
+            let base = r
+                .device_path
+                .clone()
+                .unwrap_or_else(|| format!("{}#{}", r.description, i + 1));
             let count = id_counts.entry(base.clone()).or_insert(0);
             *count += 1;
-            let id = if *count == 1 { base } else { format!("{base}#{count}") };
+            let id = if *count == 1 {
+                base
+            } else {
+                format!("{base}#{count}")
+            };
             let name = r
                 .device_path
                 .as_ref()
@@ -76,7 +86,12 @@ fn hmonitors() -> Vec<HMONITOR> {
     }
     let mut list: Vec<HMONITOR> = Vec::new();
     unsafe {
-        let _ = EnumDisplayMonitors(None, None, Some(collect), LPARAM(&mut list as *mut _ as isize));
+        let _ = EnumDisplayMonitors(
+            None,
+            None,
+            Some(collect),
+            LPARAM(&mut list as *mut _ as isize),
+        );
     }
     list
 }
@@ -90,9 +105,17 @@ fn device_paths(hmon: HMONITOR) -> Vec<String> {
     }
     let mut paths = Vec::new();
     for i in 0.. {
-        let mut dd = DISPLAY_DEVICEW { cb: std::mem::size_of::<DISPLAY_DEVICEW>() as u32, ..Default::default() };
+        let mut dd = DISPLAY_DEVICEW {
+            cb: std::mem::size_of::<DISPLAY_DEVICEW>() as u32,
+            ..Default::default()
+        };
         let found = unsafe {
-            EnumDisplayDevicesW(PCWSTR(info.szDevice.as_ptr()), i, &mut dd, EDD_GET_DEVICE_INTERFACE_NAME)
+            EnumDisplayDevicesW(
+                PCWSTR(info.szDevice.as_ptr()),
+                i,
+                &mut dd,
+                EDD_GET_DEVICE_INTERFACE_NAME,
+            )
         };
         if !found.as_bool() {
             break;
@@ -121,7 +144,9 @@ fn friendly_names() -> HashMap<String, String> {
     let mut names = HashMap::new();
     let (mut n_paths, mut n_modes) = (0u32, 0u32);
     unsafe {
-        if GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut n_paths, &mut n_modes) != ERROR_SUCCESS {
+        if GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut n_paths, &mut n_modes)
+            != ERROR_SUCCESS
+        {
             return names;
         }
         let mut paths = vec![DISPLAYCONFIG_PATH_INFO::default(); n_paths as usize];
@@ -171,7 +196,10 @@ impl Snapshot {
             for (i, pm) in physical_monitors(hmon).into_iter().enumerate() {
                 // PHYSICAL_MONITOR は packed 構造体なので、参照を取る前に値としてコピーする
                 let description = pm.szPhysicalMonitorDescription;
-                raw.push(RawMonitor { device_path: paths.get(i).cloned(), description: from_wide(&description) });
+                raw.push(RawMonitor {
+                    device_path: paths.get(i).cloned(),
+                    description: from_wide(&description),
+                });
                 handles.push(pm.hPhysicalMonitor);
             }
         }
@@ -205,7 +233,9 @@ pub struct WinBackend {
 
 impl WinBackend {
     pub fn new() -> Self {
-        Self { lock: Mutex::new(()) }
+        Self {
+            lock: Mutex::new(()),
+        }
     }
 }
 
@@ -226,9 +256,14 @@ impl MonitorBackend for WinBackend {
         let snapshot = Snapshot::take();
         let handle = snapshot.handle(id)?;
         let mut current = 0u32;
-        let ok = unsafe { GetVCPFeatureAndVCPFeatureReply(handle, VCP_BRIGHTNESS, None, &mut current, None) };
+        let ok = unsafe {
+            GetVCPFeatureAndVCPFeatureReply(handle, VCP_BRIGHTNESS, None, &mut current, None)
+        };
         if ok == 0 {
-            return Err(format!("輝度を読み取れません: {}", std::io::Error::last_os_error()));
+            return Err(format!(
+                "輝度を読み取れません: {}",
+                std::io::Error::last_os_error()
+            ));
         }
         Ok(current.min(100) as u8)
     }
@@ -239,7 +274,10 @@ impl MonitorBackend for WinBackend {
         let handle = snapshot.handle(id)?;
         let ok = unsafe { SetVCPFeature(handle, VCP_BRIGHTNESS, value.min(100) as u32) };
         if ok == 0 {
-            return Err(format!("輝度を変更できません: {}", std::io::Error::last_os_error()));
+            return Err(format!(
+                "輝度を変更できません: {}",
+                std::io::Error::last_os_error()
+            ));
         }
         Ok(())
     }
@@ -250,19 +288,37 @@ mod tests {
     use super::*;
 
     fn raw(path: Option<&str>, desc: &str) -> RawMonitor {
-        RawMonitor { device_path: path.map(String::from), description: desc.into() }
+        RawMonitor {
+            device_path: path.map(String::from),
+            description: desc.into(),
+        }
     }
 
     #[test]
     fn uses_device_path_as_id_and_friendly_name_case_insensitively() {
-        let names = HashMap::from([(r"\\?\display#dela0f3#1".to_string(), "DELL U2720Q".to_string())]);
-        let ids = build_idents(&[raw(Some(r"\\?\DISPLAY#DELA0F3#1"), "Generic PnP Monitor")], &names);
-        assert_eq!(ids, vec![MonitorIdent { id: r"\\?\DISPLAY#DELA0F3#1".into(), name: "DELL U2720Q".into() }]);
+        let names = HashMap::from([(
+            r"\\?\display#dela0f3#1".to_string(),
+            "DELL U2720Q".to_string(),
+        )]);
+        let ids = build_idents(
+            &[raw(Some(r"\\?\DISPLAY#DELA0F3#1"), "Generic PnP Monitor")],
+            &names,
+        );
+        assert_eq!(
+            ids,
+            vec![MonitorIdent {
+                id: r"\\?\DISPLAY#DELA0F3#1".into(),
+                name: "DELL U2720Q".into()
+            }]
+        );
     }
 
     #[test]
     fn falls_back_to_numbered_name() {
-        let ids = build_idents(&[raw(Some("p1"), "Generic"), raw(Some("p2"), "Generic")], &HashMap::new());
+        let ids = build_idents(
+            &[raw(Some("p1"), "Generic"), raw(Some("p2"), "Generic")],
+            &HashMap::new(),
+        );
         assert_eq!(ids[0].name, "Monitor 1");
         assert_eq!(ids[1].name, "Monitor 2");
     }
@@ -281,7 +337,10 @@ mod tests {
 
     #[test]
     fn missing_device_paths_still_produce_unique_ids() {
-        let ids = build_idents(&[raw(None, "Generic"), raw(None, "Generic")], &HashMap::new());
+        let ids = build_idents(
+            &[raw(None, "Generic"), raw(None, "Generic")],
+            &HashMap::new(),
+        );
         assert_ne!(ids[0].id, ids[1].id);
     }
 

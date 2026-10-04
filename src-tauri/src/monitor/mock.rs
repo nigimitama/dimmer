@@ -13,7 +13,15 @@ pub struct MockBackend {
 fn build(specs: &[(&str, &str, Option<u8>)]) -> Vec<(MonitorIdent, Option<u8>)> {
     specs
         .iter()
-        .map(|(id, name, b)| (MonitorIdent { id: id.to_string(), name: name.to_string() }, *b))
+        .map(|(id, name, b)| {
+            (
+                MonitorIdent {
+                    id: id.to_string(),
+                    name: name.to_string(),
+                },
+                *b,
+            )
+        })
         .collect()
 }
 
@@ -29,7 +37,10 @@ impl MockBackend {
 
     /// 次の `times` 回の set_brightness を失敗させる
     pub fn fail_sets(&self, id: &str, times: usize) {
-        self.remaining_failures.lock().unwrap().insert(id.to_string(), times);
+        self.remaining_failures
+            .lock()
+            .unwrap()
+            .insert(id.to_string(), times);
     }
 
     pub fn set_calls(&self) -> Vec<(String, u8)> {
@@ -43,7 +54,12 @@ impl MockBackend {
 
 impl MonitorBackend for MockBackend {
     fn list(&self) -> Vec<MonitorIdent> {
-        self.monitors.lock().unwrap().iter().map(|(m, _)| m.clone()).collect()
+        self.monitors
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|(m, _)| m.clone())
+            .collect()
     }
 
     fn get_brightness(&self, id: &str) -> Result<u8, String> {

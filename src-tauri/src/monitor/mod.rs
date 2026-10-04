@@ -55,7 +55,11 @@ pub fn read_all(backend: &dyn MonitorBackend) -> Vec<MonitorInfo> {
         .into_iter()
         .map(|m| {
             let brightness = backend.get_brightness(&m.id).ok();
-            MonitorInfo { id: m.id, name: m.name, brightness }
+            MonitorInfo {
+                id: m.id,
+                name: m.name,
+                brightness,
+            }
         })
         .collect()
 }
@@ -64,14 +68,20 @@ fn apply_to(backend: &dyn MonitorBackend, targets: &[MonitorIdent], value: u8) -
     let failed = targets
         .iter()
         .filter_map(|m| {
-            backend.set_brightness(&m.id, value).err().map(|error| ApplyFailure {
-                id: m.id.clone(),
-                name: m.name.clone(),
-                error,
-            })
+            backend
+                .set_brightness(&m.id, value)
+                .err()
+                .map(|error| ApplyFailure {
+                    id: m.id.clone(),
+                    name: m.name.clone(),
+                    error,
+                })
         })
         .collect();
-    ApplyResult { attempted: targets.len(), failed }
+    ApplyResult {
+        attempted: targets.len(),
+        failed,
+    }
 }
 
 pub fn apply_all(backend: &dyn MonitorBackend, value: u8) -> ApplyResult {
@@ -83,7 +93,11 @@ pub fn apply_one(backend: &dyn MonitorBackend, id: &str, value: u8) -> ApplyResu
     if targets.is_empty() {
         return ApplyResult {
             attempted: 0,
-            failed: vec![ApplyFailure { id: id.into(), name: id.into(), error: "モニターが見つかりません".into() }],
+            failed: vec![ApplyFailure {
+                id: id.into(),
+                name: id.into(),
+                error: "モニターが見つかりません".into(),
+            }],
         };
     }
     apply_to(backend, &targets, value)
@@ -108,7 +122,10 @@ pub fn apply_with_retry(
             .filter(|m| result.failed.iter().any(|f| f.id == m.id))
             .cloned()
             .collect();
-        result = ApplyResult { attempted: all.len(), failed: apply_to(backend, &retry, value).failed };
+        result = ApplyResult {
+            attempted: all.len(),
+            failed: apply_to(backend, &retry, value).failed,
+        };
     }
     result
 }
@@ -123,7 +140,14 @@ mod tests {
     fn read_all_reports_unreadable_monitor_as_none() {
         let b = MockBackend::new(&[("a", "Ext", Some(60)), ("lap", "Laptop", None)]);
         let all = read_all(&b);
-        assert_eq!(all[0], MonitorInfo { id: "a".into(), name: "Ext".into(), brightness: Some(60) });
+        assert_eq!(
+            all[0],
+            MonitorInfo {
+                id: "a".into(),
+                name: "Ext".into(),
+                brightness: Some(60)
+            }
+        );
         assert_eq!(all[1].brightness, None);
     }
 
@@ -167,7 +191,11 @@ mod tests {
         assert_eq!(slept.into_inner(), vec![Duration::from_secs(5)]);
         assert_eq!(
             b.set_calls(),
-            vec![("a".to_string(), 40), ("b".to_string(), 40), ("b".to_string(), 40)]
+            vec![
+                ("a".to_string(), 40),
+                ("b".to_string(), 40),
+                ("b".to_string(), 40)
+            ]
         );
     }
 

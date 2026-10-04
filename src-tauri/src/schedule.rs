@@ -44,20 +44,32 @@ pub fn current_slot(entries: &[ScheduleEntry], now: NaiveDateTime) -> Option<Slo
     let times = sorted_times(entries);
     let today = now.date();
     if let Some(&(t, brightness)) = times.iter().rev().find(|(t, _)| *t <= now.time()) {
-        return Some(Slot { id: today.and_time(t), brightness });
+        return Some(Slot {
+            id: today.and_time(t),
+            brightness,
+        });
     }
     let &(t, brightness) = times.last()?;
-    Some(Slot { id: today.pred_opt()?.and_time(t), brightness })
+    Some(Slot {
+        id: today.pred_opt()?.and_time(t),
+        brightness,
+    })
 }
 
 pub fn next_slot(entries: &[ScheduleEntry], now: NaiveDateTime) -> Option<Slot> {
     let times = sorted_times(entries);
     let today = now.date();
     if let Some(&(t, brightness)) = times.iter().find(|(t, _)| *t > now.time()) {
-        return Some(Slot { id: today.and_time(t), brightness });
+        return Some(Slot {
+            id: today.and_time(t),
+            brightness,
+        });
     }
     let &(t, brightness) = times.first()?;
-    Some(Slot { id: today.succ_opt()?.and_time(t), brightness })
+    Some(Slot {
+        id: today.succ_opt()?.and_time(t),
+        brightness,
+    })
 }
 
 pub fn normalize(entries: &[ScheduleEntry]) -> Result<Vec<ScheduleEntry>, Vec<EntryError>> {
@@ -65,15 +77,24 @@ pub fn normalize(entries: &[ScheduleEntry]) -> Result<Vec<ScheduleEntry>, Vec<En
     let mut seen = HashSet::new();
     for (index, entry) in entries.iter().enumerate() {
         if parse_time(&entry.time).is_none() {
-            errors.push(EntryError { index, message: format!("時刻の形式が正しくありません: {:?}", entry.time) });
+            errors.push(EntryError {
+                index,
+                message: format!("時刻の形式が正しくありません: {:?}", entry.time),
+            });
             continue;
         }
         if entry.brightness > 100 {
-            errors.push(EntryError { index, message: "輝度は 0〜100 で指定してください".into() });
+            errors.push(EntryError {
+                index,
+                message: "輝度は 0〜100 で指定してください".into(),
+            });
             continue;
         }
         if !seen.insert(entry.time.clone()) {
-            errors.push(EntryError { index, message: format!("時刻 {} が重複しています", entry.time) });
+            errors.push(EntryError {
+                index,
+                message: format!("時刻 {} が重複しています", entry.time),
+            });
         }
     }
     if !errors.is_empty() {
@@ -107,7 +128,10 @@ pub fn default_schedule() -> Vec<ScheduleEntry> {
         ("23:00", 0),
     ]
     .into_iter()
-    .map(|(time, brightness)| ScheduleEntry { time: time.into(), brightness })
+    .map(|(time, brightness)| ScheduleEntry {
+        time: time.into(),
+        brightness,
+    })
     .collect()
 }
 
@@ -117,11 +141,17 @@ mod tests {
     use chrono::NaiveDate;
 
     fn e(time: &str, brightness: u8) -> ScheduleEntry {
-        ScheduleEntry { time: time.into(), brightness }
+        ScheduleEntry {
+            time: time.into(),
+            brightness,
+        }
     }
 
     fn at(day: u32, h: u32, m: u32, s: u32) -> NaiveDateTime {
-        NaiveDate::from_ymd_opt(2026, 10, day).unwrap().and_hms_opt(h, m, s).unwrap()
+        NaiveDate::from_ymd_opt(2026, 10, day)
+            .unwrap()
+            .and_hms_opt(h, m, s)
+            .unwrap()
     }
 
     fn sample() -> Vec<ScheduleEntry> {
@@ -131,7 +161,13 @@ mod tests {
     #[test]
     fn current_slot_is_latest_entry_not_after_now() {
         let slot = current_slot(&sample(), at(5, 19, 30, 0)).unwrap();
-        assert_eq!(slot, Slot { id: at(5, 18, 0, 0), brightness: 80 });
+        assert_eq!(
+            slot,
+            Slot {
+                id: at(5, 18, 0, 0),
+                brightness: 80
+            }
+        );
     }
 
     #[test]
@@ -143,20 +179,41 @@ mod tests {
     #[test]
     fn current_slot_before_first_entry_uses_previous_days_last_entry() {
         let slot = current_slot(&sample(), at(5, 2, 0, 0)).unwrap();
-        assert_eq!(slot, Slot { id: at(4, 23, 0, 0), brightness: 0 });
+        assert_eq!(
+            slot,
+            Slot {
+                id: at(4, 23, 0, 0),
+                brightness: 0
+            }
+        );
     }
 
     #[test]
     fn current_slot_ignores_input_order() {
         let entries = vec![e("23:00", 0), e("06:00", 70), e("18:00", 80)];
-        assert_eq!(current_slot(&entries, at(5, 7, 0, 0)).unwrap().brightness, 70);
+        assert_eq!(
+            current_slot(&entries, at(5, 7, 0, 0)).unwrap().brightness,
+            70
+        );
     }
 
     #[test]
     fn single_entry_applies_all_day() {
         let entries = vec![e("12:00", 40)];
-        assert_eq!(current_slot(&entries, at(5, 13, 0, 0)).unwrap(), Slot { id: at(5, 12, 0, 0), brightness: 40 });
-        assert_eq!(current_slot(&entries, at(5, 11, 0, 0)).unwrap(), Slot { id: at(4, 12, 0, 0), brightness: 40 });
+        assert_eq!(
+            current_slot(&entries, at(5, 13, 0, 0)).unwrap(),
+            Slot {
+                id: at(5, 12, 0, 0),
+                brightness: 40
+            }
+        );
+        assert_eq!(
+            current_slot(&entries, at(5, 11, 0, 0)).unwrap(),
+            Slot {
+                id: at(4, 12, 0, 0),
+                brightness: 40
+            }
+        );
     }
 
     #[test]
@@ -167,12 +224,24 @@ mod tests {
 
     #[test]
     fn next_slot_is_first_entry_after_now() {
-        assert_eq!(next_slot(&sample(), at(5, 18, 0, 0)).unwrap(), Slot { id: at(5, 23, 0, 0), brightness: 0 });
+        assert_eq!(
+            next_slot(&sample(), at(5, 18, 0, 0)).unwrap(),
+            Slot {
+                id: at(5, 23, 0, 0),
+                brightness: 0
+            }
+        );
     }
 
     #[test]
     fn next_slot_wraps_to_tomorrow() {
-        assert_eq!(next_slot(&sample(), at(5, 23, 30, 0)).unwrap(), Slot { id: at(6, 6, 0, 0), brightness: 70 });
+        assert_eq!(
+            next_slot(&sample(), at(5, 23, 30, 0)).unwrap(),
+            Slot {
+                id: at(6, 6, 0, 0),
+                brightness: 70
+            }
+        );
     }
 
     #[test]
@@ -213,7 +282,10 @@ mod tests {
 
     #[test]
     fn format_errors_uses_one_based_rows() {
-        let text = format_errors(&[EntryError { index: 1, message: "x".into() }]);
+        let text = format_errors(&[EntryError {
+            index: 1,
+            message: "x".into(),
+        }]);
         assert_eq!(text, "2行目: x");
     }
 }

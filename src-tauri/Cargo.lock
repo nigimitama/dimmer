@@ -589,6 +589,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tempfile",
+ "windows",
 ]
 
 [[package]]

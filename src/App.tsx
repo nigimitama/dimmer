@@ -13,6 +13,7 @@ import {
 import { api, type ApplyResult, type Monitor, type Settings } from "./api";
 import { BrightnessPanel } from "./components/BrightnessPanel";
 import { SchedulePanel } from "./components/SchedulePanel";
+import { SettingsDialog } from "./components/SettingsDialog";
 
 const useStyles = makeStyles({
   root: {
@@ -80,7 +81,7 @@ export default function App() {
     <div className={styles.root}>
       <header className={styles.header}>
         <Title3>Dimmer</Title3>
-        {/* Task 12: SettingsDialog */}
+        <SettingsDialog settings={settings} onChange={setSettings} onError={notifyError} />
       </header>
       <BrightnessPanel
         monitors={monitors}

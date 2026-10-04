@@ -57,7 +57,8 @@ dimmer/
 └─ src-tauri/
    └─ src/
       ├─ main.rs / lib.rs
-      ├─ monitor.rs
+      ├─ monitor/        mod.rs（トレイトと共通処理）、win32.rs（Win32 実装）
+      ├─ state.rs        AppState（各モジュールの状態をまとめて Tauri に渡す）
       ├─ schedule.rs
       ├─ scheduler.rs
       ├─ settings.rs
@@ -69,7 +70,7 @@ dimmer/
 
 | モジュール | 役割 | 依存先 |
 |---|---|---|
-| `monitor.rs` | DDC/CI でモニターを列挙し、ID と名前付きで輝度を get/set する。`MonitorBackend` トレイトとして定義し、テストではモックに差し替える | `ddc-hi` |
+| `monitor/` | DDC/CI でモニターを列挙し、ID と名前付きで輝度を get/set する。`MonitorBackend` トレイトとして定義し、テストではモックに差し替える | `windows` crate（Monitor Configuration API、DisplayConfig API） |
 | `schedule.rs` | 純粋関数のみ。スケジュールと現在時刻から現在のスロットを返す。I/O を持たない | なし |
 | `scheduler.rs` | 30秒ごとの tick ループ。スロットの変化、スリープ復帰、モニター構成の変化を検知して輝度を適用する。時計は差し替えられるようにする | monitor, schedule, settings |
 | `settings.rs` | 設定ファイルの読み書きと検証 | serde, serde_json |
@@ -86,9 +87,13 @@ DDC へのアクセスは `Mutex` で直列化し、スケジューラーと手�
 
 ### 3.2 モニターの識別と名前
 
-- 個別操作はインデックスではなく、`ddc-hi` が返すモニター ID で指定する。抜き差しで順番が変わっても操作対象がずれないようにするため
-- 名前は次の順で取得する：(1) `ddc-hi` の EDID 情報の model name、(2) DDC capabilities 文字列の `model(...)`、(3) WMI の `WmiMonitorID`、(4) どれも取れなければ `Monitor N`
-- (1) で Windows 上の名前がどこまで取れるかは実機で確認が必要。最初の実装タスクで確かめ、取れない場合だけ (2) 以降を実装する
+当初は `ddc-hi` crate を使う予定だったが、Windows では `DisplayInfo` に説明文（例：「Generic PnP Monitor」）しか入らず、ID が一意にならないうえ製品名も取れないことが分かった。そのため Win32 API を `windows` crate で直接呼ぶ。
+
+- **ID**：`EnumDisplayDevicesW`（`EDD_GET_DEVICE_INTERFACE_NAME`）で得るモニターのデバイスインターフェースパス（例：`\\?\DISPLAY#DELA0F3#...`）。機種が同じモニターでも一意になる。取れない場合は「説明文#連番」とし、それでも重複すれば末尾に `#2` などを付ける
+- 個別操作はインデックスではなくこの ID で指定する。抜き差しで順番が変わっても操作対象がずれないようにするため
+- **名前**：DisplayConfig API（`QueryDisplayConfig` → `DisplayConfigGetDeviceInfo` の target name）の `monitorFriendlyDeviceName`（EDID 由来）を、デバイスパスで対応付けて使う。取れなければ `Monitor N`
+- 同じ名前のモニターが複数あるときは、末尾に ` (1)`、` (2)` を付けて区別する
+- 輝度は VCP コード `0x10` の生の値を使う（現行と同じ。ほとんどのモニターは最大値が 100）
 
 ## 4. データモデル
 
@@ -161,9 +166,14 @@ struct SchedulerState {
    - 復帰とみなした
    - モニター構成が変化した
    - 起動後最初の tick である
-6. 適用に失敗したモニターがあれば、5秒後と15秒後にリトライする（最大3回）。リトライは tick ループを止めずに別タスクで行う
-7. すべてのモニターで成功したら `last_applied` を更新し、`monitors-updated` イベントを送る。リトライしても失敗した場合は `last_applied` を更新せず、ログに残す。次の tick でまた試す
-8. `last_tick = now`、`last_monitor_ids` を更新する
+6. 適用に失敗したモニターがあれば、失敗したものだけを5秒後と、さらにその15秒後にリトライする（最大3回）。リトライ中は次の tick を待たせる（2つの適用処理が同時に走らないようにするため）
+7. 次のいずれかに当てはまれば `last_applied` を更新する。どの場合も、その後 `monitors-updated` イベントを送る
+   - 1台以上で成功した（ノート PC の内蔵ディスプレイのように DDC/CI に対応していないモニターがあっても、適用済みにできるようにするため。失敗したモニターはログに残す）
+   - 対象のモニターが0台だった
+   - 全台の失敗が 10 tick（約5分）続いた（諦めてログに残す）
+   それ以外（全台が失敗した）の場合は `last_applied` を更新しない。次の tick でまた試す
+8. 復帰、モニター構成の変化、起動直後のいずれかを検知した tick では、手順 4 の前に `last_applied` を空にする。こうすると、再適用に失敗しても次の tick で再び試すことになる
+9. `last_tick = now`、`last_monitor_ids` を更新する
 
 これにより、現行の「set を2回呼ぶ」回避策はリトライで置き換える。
 
@@ -179,8 +189,7 @@ struct SchedulerState {
 
 | 名前 | 引数 | 戻り値 | 内容 |
 |---|---|---|---|
-| `get_monitors` | なし | `Monitor[]` | 列挙して現在の輝度を読む |
-| `rescan_monitors` | なし | `Monitor[]` | 再列挙する（モニターが見つからないときの再検出ボタン用） |
+| `get_monitors` | なし | `Monitor[]` | 毎回列挙し直して現在の輝度を読む（モニターが見つからないときの再検出ボタンもこれを呼ぶ） |
 | `set_brightness_all` | `value: u8` | `ApplyResult` | 全モニターに適用する |
 | `set_brightness` | `id: string, value: u8` | `ApplyResult` | 1台に適用する |
 | `get_settings` | なし | `Settings` | |
@@ -190,7 +199,7 @@ struct SchedulerState {
 
 ```ts
 type Monitor = { id: string; name: string; brightness: number | null }; // 読めなければ null
-type ApplyResult = { failed: { id: string; name: string; error: string }[] };
+type ApplyResult = { attempted: number; failed: { id: string; name: string; error: string }[] };
 ```
 
 ### 6.2 event
@@ -263,9 +272,13 @@ Store に EXE/MSI インストーラーを提出するには、Microsoft Trusted
   - 90秒以上の間隔が空くと、同じスロットでも再適用される
   - モニター構成が変化すると再適用される
   - 起動後最初の tick で適用される
-  - 失敗するとリトライし、成功するまで `last_applied` が更新されない
+  - 全台が失敗すると `last_applied` が更新されず、次の tick で再び適用する
+  - 1台でも成功すれば適用済みになる。全台の失敗が 10 tick 続くと諦めて適用済みになる
+  - 復帰直後の失敗がリトライで回復する（モックで1回目だけ失敗させる）
+  - 時刻が巻き戻ると再適用される
   - 手動で設定した値が、同じスロットの間は上書きされない
   - スケジュールを保存すると、現在のスロットが適用済みになる
+- `monitor/win32.rs` の ID と名前の組み立て（純粋関数として切り出す）：デバイスパスがない場合の ID の重複回避、同名モニターへの番号付け、名前が取れない場合の `Monitor N`
 - `settings.rs`：読み書きの往復、時刻の重複・形式不正・範囲外での拒否、壊れたファイルの退避とデフォルトでの起動、ソート
 - React（Vitest）：スケジュールの検証ロジック、グラフの座標計算（日付をまたぐ部分を含む）
 

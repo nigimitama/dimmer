@@ -12,6 +12,7 @@ import {
 } from "@fluentui/react-components";
 import { api, type ApplyResult, type Monitor, type Settings } from "./api";
 import { BrightnessPanel } from "./components/BrightnessPanel";
+import { SchedulePanel } from "./components/SchedulePanel";
 
 const useStyles = makeStyles({
   root: {
@@ -88,8 +89,7 @@ export default function App() {
         onRescan={refreshMonitors}
         onError={notifyError}
       />
-      {/* Task 11: SchedulePanel */}
-      {settings && null}
+      {settings && <SchedulePanel schedule={settings.schedule} onSaved={setSettings} onError={notifyError} />}
       <Toaster toasterId={toasterId} position="bottom" />
     </div>
   );

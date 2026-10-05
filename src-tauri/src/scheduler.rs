@@ -47,8 +47,10 @@ impl SchedulerState {
         self.last_monitor_ids = monitor_ids;
 
         if first || resumed || monitors_changed {
-            // 再適用に失敗しても、次の tick でまた試すことになる
+            // 再適用に失敗しても、次の tick でまた試すことになる。
+            // 失敗回数も数え直し、復帰前の失敗が続いていてもすぐには諦めないようにする
             self.last_applied = None;
+            self.failed_ticks = 0;
         }
         let apply = current_slot(entries, now).filter(|slot| self.last_applied != Some(slot.id));
         Decision {
@@ -289,6 +291,21 @@ mod tests {
             now += ChronoDuration::seconds(30);
         }
         assert_eq!(s.tick(now, ids(), &entries()).apply, None);
+    }
+
+    #[test]
+    fn failure_streak_does_not_carry_over_a_resume() {
+        let mut s = SchedulerState::default();
+        let mut now = at(19, 0, 0);
+        for _ in 1..MAX_FAILED_TICKS {
+            let d = s.tick(now, ids(), &entries());
+            assert!(!s.record_result(d.apply.unwrap(), &all_failed()));
+            now += ChronoDuration::seconds(30);
+        }
+        // スリープから復帰した直後の1回目の失敗では、まだ諦めない
+        let d = s.tick(now + ChronoDuration::hours(1), ids(), &entries());
+        assert!(d.resumed);
+        assert!(!s.record_result(d.apply.unwrap(), &all_failed()));
     }
 
     #[test]

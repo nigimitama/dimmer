@@ -1,6 +1,10 @@
 import { Button, Card, Divider, makeStyles, Slider, Spinner, Text, tokens } from "@fluentui/react-components";
 import { api, type ApplyResult, type Monitor } from "../api";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
+import { createCoalescingQueue } from "../lib/coalescingQueue";
+
+// 輝度の変更はアプリ全体で1つずつ順番に送り、同じ対象への古い変更は捨てる
+const brightnessQueue = createCoalescingQueue();
 
 const useStyles = makeStyles({
   card: { display: "flex", flexDirection: "column", gap: tokens.spacingVerticalS },
@@ -81,7 +85,7 @@ export function BrightnessPanel({ monitors, onMonitorsChange, onApplied, onResca
         value={average}
         strong
         onChange={(v) => onMonitorsChange(monitors.map((m) => (m.brightness === null ? m : { ...m, brightness: v })))}
-        onCommit={(v) => api.setBrightnessAll(v).then(onApplied).catch(fail)}
+        onCommit={(v) => brightnessQueue.enqueue("all", () => api.setBrightnessAll(v).then(onApplied).catch(fail))}
       />
       <Divider />
       {monitors.map((m) => (
@@ -90,7 +94,9 @@ export function BrightnessPanel({ monitors, onMonitorsChange, onApplied, onResca
           label={m.name}
           value={m.brightness}
           onChange={(v) => onMonitorsChange(monitors.map((x) => (x.id === m.id ? { ...x, brightness: v } : x)))}
-          onCommit={(v) => api.setBrightness(m.id, v).then(onApplied).catch(fail)}
+          onCommit={(v) =>
+            brightnessQueue.enqueue(m.id, () => api.setBrightness(m.id, v).then(onApplied).catch(fail))
+          }
         />
       ))}
     </Card>

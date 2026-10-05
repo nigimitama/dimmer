@@ -1,8 +1,8 @@
 type Task = () => Promise<unknown>;
 
 /**
- * タスクを1つずつ順番に実行するキュー。同じキーで待っているタスクは最新のものだけを残す。
- * 輝度の変更が並行して走ると、モニターへの書き込み順が入れ替わって古い値が残ることがあるため、これで直列化する
+ * A queue that runs tasks one at a time. Among tasks waiting on the same key, only the latest is kept.
+ * Brightness changes running concurrently can reorder writes to the monitor and leave a stale value, so they are serialized here
  */
 export function createCoalescingQueue() {
   const pending = new Map<string, Task>();
@@ -17,7 +17,7 @@ export function createCoalescingQueue() {
       try {
         await task();
       } catch {
-        // エラーの通知は各タスクの中で行う
+        // Each task reports its own errors
       }
     }
     running = false;
@@ -25,7 +25,7 @@ export function createCoalescingQueue() {
 
   return {
     enqueue(key: string, task: Task) {
-      // 末尾に付け直し、最後に操作したものが最後に適用されるようにする
+      // Re-append at the end so the most recently touched task is applied last
       pending.delete(key);
       pending.set(key, task);
       void drain();

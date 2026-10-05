@@ -25,9 +25,9 @@ export function SchedulePanel({ schedule, onSaved, onError }: Props) {
   const [rows, setRows] = useState<DraftEntry[]>(() => toDraft(schedule));
   const nowMinutes = useNowMinutes();
   const { errors } = validateDraft(rows);
-  const fail = (e: unknown) => onError("スケジュールを保存できませんでした", String(e));
+  const fail = (e: unknown) => onError("Couldn't save schedule", String(e));
 
-  // 編集のたびに自動保存する。エラーがある間は保存しない
+  // Auto-save on every edit. Don't save while there are errors
   const update = (next: DraftEntry[]) => {
     setRows(next);
     const { entries } = validateDraft(next);
@@ -49,10 +49,10 @@ export function SchedulePanel({ schedule, onSaved, onError }: Props) {
   return (
     <Card className={styles.card}>
       <div className={styles.heading}>
-        <Subtitle2>スケジュール</Subtitle2>
+        <Subtitle2>Schedule</Subtitle2>
         {next !== null && (
           <Caption1 className={styles.next}>
-            次 {schedule[next].time} → {schedule[next].brightness}%
+            Next {schedule[next].time} → {schedule[next].brightness}%
           </Caption1>
         )}
       </div>
@@ -65,9 +65,9 @@ export function SchedulePanel({ schedule, onSaved, onError }: Props) {
       />
       <div className={styles.actions}>
         <Button icon={<AddRegular />} onClick={() => update([...rows, { time: "00:00", brightness: "50" }])}>
-          追加
+          Add
         </Button>
-        <Button onClick={reset}>デフォルトに戻す</Button>
+        <Button onClick={reset}>Reset to default</Button>
       </div>
     </Card>
   );

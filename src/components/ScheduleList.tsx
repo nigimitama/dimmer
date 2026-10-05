@@ -33,18 +33,18 @@ export function ScheduleList({ rows, errors, currentTime, onChange }: Props) {
     <div className={styles.list}>
       {rows.map((row, i) => (
         <div key={i} className={mergeClasses(styles.row, row.time === currentTime && styles.current)}>
-          <Input type="time" value={row.time} aria-label="時刻" onChange={(_, d) => patch(i, { time: d.value })} />
+          <Input type="time" value={row.time} aria-label="Time" onChange={(_, d) => patch(i, { time: d.value })} />
           <Input
             value={row.brightness}
             inputMode="numeric"
             contentAfter="%"
-            aria-label="輝度"
+            aria-label="Brightness"
             onChange={(_, d) => patch(i, { brightness: d.value })}
           />
           <Button
             appearance="subtle"
             icon={<DismissRegular />}
-            aria-label="削除"
+            aria-label="Delete"
             onClick={() => onChange(rows.filter((_, j) => j !== i))}
           />
           {errors[i] && <Text className={styles.error}>{errors[i]}</Text>}

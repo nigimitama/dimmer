@@ -3,7 +3,7 @@ import { api, type ApplyResult, type Monitor } from "../api";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import { createCoalescingQueue } from "../lib/coalescingQueue";
 
-// 輝度の変更はアプリ全体で1つずつ順番に送り、同じ対象への古い変更は捨てる
+// Send brightness changes one at a time across the whole app, and drop stale changes to the same target
 const brightnessQueue = createCoalescingQueue();
 
 const useStyles = makeStyles({
@@ -32,7 +32,7 @@ function BrightnessRow({ label, value, strong, onChange, onCommit }: RowProps) {
         {label}
       </Text>
       {value === null ? (
-        <Text className={styles.muted}>読み取れません</Text>
+        <Text className={styles.muted}>Unavailable</Text>
       ) : (
         <Slider
           min={0}
@@ -64,24 +64,24 @@ type Props = {
 export function BrightnessPanel({ monitors, onMonitorsChange, onApplied, onRescan, onError }: Props) {
   const styles = useStyles();
 
-  if (monitors === null) return <Spinner label="モニターを検出しています…" />;
+  if (monitors === null) return <Spinner label="Detecting monitors…" />;
   if (monitors.length === 0) {
     return (
       <Card className={styles.empty}>
-        <Text>DDC/CI 対応のモニターが見つかりません</Text>
-        <Button onClick={onRescan}>再検出</Button>
+        <Text>No DDC/CI-compatible monitors found</Text>
+        <Button onClick={onRescan}>Rescan</Button>
       </Card>
     );
   }
 
   const readable = monitors.flatMap((m) => (m.brightness === null ? [] : [m.brightness]));
   const average = readable.length ? Math.round(readable.reduce((a, b) => a + b, 0) / readable.length) : null;
-  const fail = (e: unknown) => onError("輝度を変更できませんでした", String(e));
+  const fail = (e: unknown) => onError("Couldn't change brightness", String(e));
 
   return (
     <Card className={styles.card}>
       <BrightnessRow
-        label="すべて"
+        label="All"
         value={average}
         strong
         onChange={(v) => onMonitorsChange(monitors.map((m) => (m.brightness === null ? m : { ...m, brightness: v })))}

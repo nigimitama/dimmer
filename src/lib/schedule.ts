@@ -1,6 +1,6 @@
 import type { ScheduleEntry } from "../api";
 
-/** 編集中の行。入力途中の値を保持するため、輝度も文字列で持つ */
+/** A row being edited. Brightness is also kept as a string to preserve in-progress input */
 export type DraftEntry = { time: string; brightness: string };
 export type RowErrors = Record<number, string>;
 export type Point = { minute: number; brightness: number };
@@ -14,11 +14,11 @@ export function validateDraft(rows: DraftEntry[]): { entries: ScheduleEntry[] | 
   rows.forEach((row, i) => {
     const brightness = row.brightness.trim();
     if (!TIME_RE.test(row.time)) {
-      errors[i] = "時刻を入力してください";
+      errors[i] = "Enter a time";
     } else if (!INT_RE.test(brightness) || Number(brightness) > 100) {
-      errors[i] = "輝度は 0〜100 の整数で入力してください";
+      errors[i] = "Brightness must be an integer from 0 to 100";
     } else if (seen.has(row.time)) {
-      errors[i] = `${row.time} が重複しています`;
+      errors[i] = `${row.time} is duplicated`;
     } else {
       seen.add(row.time);
     }
@@ -32,7 +32,7 @@ export const toDraft = (entries: ScheduleEntry[]): DraftEntry[] =>
 
 export const minutesOf = (time: string): number => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
 
-/** 現在のスロットのエントリの index。今日のエントリがまだなければ前日の最後のエントリ */
+/** Index of the entry for the current slot, or the previous day's last entry if none of today's entries has started yet */
 export function currentIndex(entries: ScheduleEntry[], nowMinutes: number): number | null {
   if (entries.length === 0) return null;
   let index = entries.length - 1;
@@ -48,7 +48,7 @@ export function nextIndex(entries: ScheduleEntry[], nowMinutes: number): number 
   return i === -1 ? 0 : i;
 }
 
-/** 0:00〜24:00 の階段グラフの頂点。0:00 時点は前日の最後のエントリの値 */
+/** Vertices of the 0:00–24:00 step graph. The value at 0:00 is the previous day's last entry */
 export function stepPoints(entries: ScheduleEntry[]): Point[] {
   if (entries.length === 0) return [];
   let level = entries[entries.length - 1].brightness;

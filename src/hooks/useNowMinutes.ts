@@ -5,7 +5,7 @@ const nowMinutes = () => {
   return d.getHours() * 60 + d.getMinutes();
 };
 
-/** 0:00 からの経過分。30秒ごとに更新する */
+/** Minutes elapsed since 0:00. Updates every 30 seconds */
 export function useNowMinutes(): number {
   const [minutes, setMinutes] = useState(nowMinutes);
   useEffect(() => {

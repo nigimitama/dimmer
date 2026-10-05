@@ -11,13 +11,13 @@ const labelStyle = { fill: tokens.colorNeutralForeground3, fontSize: 9 };
 
 type Props = { entries: ScheduleEntry[]; nowMinutes: number };
 
-/** 一日の輝度の推移（表示専用） */
+/** Brightness over the course of a day (display only) */
 export function ScheduleChart({ entries, nowMinutes }: Props) {
   const points = stepPoints(entries);
-  if (points.length === 0) return <Text>スケジュールがありません</Text>;
+  if (points.length === 0) return <Text>No schedule</Text>;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="一日の輝度の推移">
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Brightness over the day">
       {[0, 50, 100].map((b) => (
         <g key={b}>
           <line x1={PAD.left} x2={W - PAD.right} y1={y(b)} y2={y(b)} style={{ stroke: tokens.colorNeutralStroke2 }} />

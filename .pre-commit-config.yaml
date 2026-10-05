@@ -1,14 +1,21 @@
 repos:
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.13.0
-  hooks:
-  - id: ruff-format
-    description: "Ruff formatting"
-  - id: ruff-check
-    description: "Ruff linting"
-    args: [--fix, --exit-non-zero-on-fix]
-
-- repo: https://github.com/northisup/pyright-pretty
-  rev: v0.1.0
-  hooks:
-  - id: pyright-pretty
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: pnpm lint
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx|js)$
+      - id: tsc
+        name: tsc
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx)$
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+        language: system
+        pass_filenames: false
+        files: \.rs$

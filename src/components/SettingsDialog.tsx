@@ -38,28 +38,28 @@ export function SettingsDialog({ settings, onChange, onError }: Props) {
   return (
     <Dialog>
       <DialogTrigger disableButtonEnhancement>
-        <Button appearance="subtle" icon={<SettingsRegular />} aria-label="設定" />
+        <Button appearance="subtle" icon={<SettingsRegular />} aria-label="Settings" />
       </DialogTrigger>
       <DialogSurface>
         <DialogBody>
-          <DialogTitle>設定</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <DialogContent className={styles.content}>
             <Switch
-              label="ログイン時に起動"
+              label="Launch at login"
               checked={settings?.autostart ?? false}
               disabled={settings === null}
               onChange={(_, data) =>
                 api
                   .setAutostart(data.checked)
                   .then(onChange)
-                  .catch((e) => onError("自動起動の設定を変更できませんでした", String(e)))
+                  .catch((e) => onError("Couldn't change autostart setting", String(e)))
               }
             />
-            <Caption1>バージョン {version}</Caption1>
+            <Caption1>Version {version}</Caption1>
           </DialogContent>
           <DialogActions>
             <DialogTrigger disableButtonEnhancement>
-              <Button appearance="secondary">閉じる</Button>
+              <Button appearance="secondary">Close</Button>
             </DialogTrigger>
           </DialogActions>
         </DialogBody>

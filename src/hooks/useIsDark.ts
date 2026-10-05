@@ -7,5 +7,5 @@ const subscribe = (onChange: () => void) => {
   return () => query.removeEventListener("change", onChange);
 };
 
-/** OS のダークモード設定に追従する */
+/** Follows the OS dark mode setting */
 export const useIsDark = (): boolean => useSyncExternalStore(subscribe, () => query.matches);

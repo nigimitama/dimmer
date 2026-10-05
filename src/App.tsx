@@ -50,7 +50,7 @@ export default function App() {
     api
       .getMonitors()
       .then(setMonitors)
-      .catch((e) => notifyError("モニターを取得できませんでした", String(e)));
+      .catch((e) => notifyError("Couldn't get monitors", String(e)));
   }, [notifyError]);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function App() {
     api
       .getSettings()
       .then(setSettings)
-      .catch((e) => notifyError("設定を読み込めませんでした", String(e)));
+      .catch((e) => notifyError("Couldn't load settings", String(e)));
     const unlisten = api.onMonitorsUpdated(setMonitors);
     return () => {
       unlisten.then((f) => f());
@@ -67,11 +67,11 @@ export default function App() {
 
   const reportApply = useCallback(
     (result: ApplyResult) => {
-      // 輝度を読み取れないモニター（ノート PC の内蔵ディスプレイなど）への失敗は想定どおりなので知らせない
+      // Failures on monitors whose brightness can't be read (e.g. a laptop's built-in display) are expected, so don't notify
       const unreadable = new Set((monitors ?? []).filter((m) => m.brightness === null).map((m) => m.id));
       const failed = result.failed.filter((f) => !unreadable.has(f.id));
       if (failed.length > 0) {
-        notifyError("一部のモニターに適用できませんでした", failed.map((f) => `${f.name}: ${f.error}`).join("\n"));
+        notifyError("Couldn't apply to some monitors", failed.map((f) => `${f.name}: ${f.error}`).join("\n"));
       }
     },
     [monitors, notifyError],

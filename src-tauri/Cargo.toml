@@ -1,6 +1,6 @@
 [package]
 name = "dimmer"
-version = "1.0.0"
+version = "1.0.1"
 description = "Monitor brightness manager"
 authors = ["nigimitama"]
 edition = "2021"
